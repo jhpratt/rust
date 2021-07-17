@@ -19,6 +19,17 @@ pub fn expand_deriving_default(
     item: &Annotatable,
     push: &mut dyn FnMut(Annotatable),
 ) {
+    // Catch outer `#[default]` attribute on items.
+    if let Annotatable::Item(item) = item {
+        if let Some(attr) = item.attrs.iter().find(|attr| attr.has_name(kw::Default)) {
+            cx.struct_span_err(
+                attr.span,
+                "the `#[default]` attribute may only be used on unit enum variants",
+            )
+            .emit();
+        }
+    }
+
     let inline = cx.meta_word(span, sym::inline);
     let attrs = vec![cx.attribute(inline)];
     let trait_def = TraitDef {
@@ -75,6 +86,23 @@ fn default_struct_substructure(
     // Note that `kw::Default` is "default" and `sym::Default` is "Default"!
     let default_ident = cx.std_path(&[kw::Default, sym::Default, kw::Default]);
     let default_call = |span| cx.expr_call_global(span, default_ident.clone(), Vec::new());
+
+    if let SubstructureFields::StaticStruct(variants, _) = substr.fields {
+        if let Some(attr) = variants
+            .fields()
+            .iter()
+            .flat_map(|field| &field.attrs)
+            .find(|attr| attr.has_name(kw::Default))
+        {
+            cx.struct_span_err(
+                attr.span,
+                "the `#[default]` attribute may only be used on unit enum variants",
+            )
+            .emit();
+        }
+    } else {
+        cx.bug("this method must only be called when a struct definition is passed");
+    }
 
     match summary {
         Unnamed(ref fields, is_tuple) => {
@@ -186,9 +214,12 @@ fn extract_default_variant<'a>(
     };
 
     if !matches!(variant.data, VariantData::Unit(..)) {
-        cx.struct_span_err(variant.ident.span, "`#[default]` may only be used on unit variants")
-            .help("consider a manual implementation of `Default`")
-            .emit();
+        cx.struct_span_err(
+            variant.ident.span,
+            "the `#[default]` attribute may only be used on unit enum variants",
+        )
+        .help("consider a manual implementation of `Default`")
+        .emit();
 
         return Err(());
     }

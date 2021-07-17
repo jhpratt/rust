@@ -7,6 +7,27 @@
 #![feature(trace_macros, concat_idents)]
 #![feature(derive_default_enum)]
 
+#[derive(Default)]
+struct DefaultInnerAttrStruct {
+    #[default] //~ ERROR the `#[default]` attribute may only be used on unit enum variants
+    foo: (),
+}
+
+#[derive(Default)]
+struct DefaultInnerAttrTupleStruct(#[default] ());
+//~^ ERROR the `#[default]` attribute may only be used on unit enum variants
+
+#[derive(Default)]
+#[default] //~ ERROR the `#[default]` attribute may only be used on unit enum variants
+struct DefaultOuterAttrStruct {}
+
+#[derive(Default)]
+#[default] //~ ERROR the `#[default]` attribute may only be used on unit enum variants
+enum DefaultOuterAttrEnum {
+    #[default]
+    Foo,
+}
+
 #[derive(Default)] //~ ERROR no default declared
 enum NoDeclaredDefault {
     Foo,
@@ -50,7 +71,7 @@ enum ManyDefaultAttrs {
 #[derive(Default)]
 enum DefaultHasFields {
     #[default]
-    Foo {}, //~ ERROR `#[default]` may only be used on unit variants
+    Foo {}, //~ ERROR the `#[default]` attribute may only be used on unit enum variants
     Bar,
 }
 
