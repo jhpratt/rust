@@ -143,6 +143,7 @@ mod bit;
 mod control_flow;
 mod deref;
 mod drop;
+mod from_integer_literal;
 mod function;
 mod generator;
 mod index;
@@ -203,3 +204,6 @@ pub use self::unsize::DispatchFromDyn;
 
 #[unstable(feature = "control_flow_enum", reason = "new API", issue = "75744")]
 pub use self::control_flow::ControlFlow;
+
+#[unstable(feature = "from_integer_literal", issue = "none")]
+pub use self::from_integer_literal::FromIntegerLiteral;

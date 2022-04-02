@@ -1,7 +1,7 @@
 //! Definitions of integer that is known not to equal zero.
 
 use crate::fmt;
-use crate::ops::{BitOr, BitOrAssign, Div, Rem};
+use crate::ops::{BitOr, BitOrAssign, Div, FromIntegerLiteral, Rem};
 use crate::str::FromStr;
 
 use super::from_str_radix;
@@ -83,6 +83,21 @@ macro_rules! nonzero_integers {
                     self.0
                 }
 
+            }
+
+            #[stable(feature = "nonzero_literals", since = "1.62.0")] // the trait itself is unstable
+            #[rustc_const_unstable(feature = "from_integer_literal", issue = "none")]
+            impl const FromIntegerLiteral for $Ty {
+                type Input = $Int;
+
+                fn from_integer_literal(i: Self::Input) -> Result<Self, &'static str> {
+                    if i == 0 {
+                        Err("expected non-zero value")
+                    } else {
+                        // SAFETY: We just checked if the value is zero.
+                        Ok(unsafe { Self(i) })
+                    }
+                }
             }
 
             #[stable(feature = "from_nonzero", since = "1.31.0")]

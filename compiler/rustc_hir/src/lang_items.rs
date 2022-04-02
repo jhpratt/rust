@@ -168,6 +168,7 @@ language_item_table! {
 //  Variant name,            Name,                     Method name,                Target                  Generic requirements;
     Sized,                   sym::sized,               sized_trait,                Target::Trait,          GenericRequirement::Exact(0);
     Unsize,                  sym::unsize,              unsize_trait,               Target::Trait,          GenericRequirement::Minimum(1);
+    FromIntegerLiteral,      sym::from_integer_literal, from_integer_literal_trait, Target::Trait,         GenericRequirement::None;
     /// Trait injected by `#[derive(PartialEq)]`, (i.e. "Partial EQ").
     StructuralPeq,           sym::structural_peq,      structural_peq_trait,       Target::Trait,          GenericRequirement::None;
     /// Trait injected by `#[derive(Eq)]`, (i.e. "Total EQ"; no, I will not apologize).
