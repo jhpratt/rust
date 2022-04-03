@@ -24,5 +24,5 @@ pub trait FromIntegerLiteral: Sized {
     // FIXME(jhpratt) Enforce the bound in the compiler?
     type Input: sealed::Integer;
 
-    fn from_integer_literal(i: Self::Input) -> Result<Self, &'static str>;
+    fn from_integer_literal(i: Self::Input) -> Self;
 }

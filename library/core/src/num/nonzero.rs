@@ -90,13 +90,13 @@ macro_rules! nonzero_integers {
             impl const FromIntegerLiteral for $Ty {
                 type Input = $Int;
 
-                fn from_integer_literal(i: Self::Input) -> Result<Self, &'static str> {
+                fn from_integer_literal(i: Self::Input) -> Self {
                     if i == 0 {
-                        Err("expected non-zero value")
-                    } else {
-                        // SAFETY: We just checked if the value is zero.
-                        Ok(unsafe { Self(i) })
+                        panic!("expected non-zero value")
                     }
+
+                    // SAFETY: We just checked if the value is zero.
+                    unsafe { Self(i) }
                 }
             }
 
