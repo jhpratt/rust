@@ -289,7 +289,8 @@ impl<'a, 'tcx> MemCategorizationContext<'a, 'tcx> {
                 self.cat_deref(expr, base)
             }
 
-            adjustment::Adjust::NeverToAny
+            adjustment::Adjust::FromIntegerLiteral
+            | adjustment::Adjust::NeverToAny
             | adjustment::Adjust::Pointer(_)
             | adjustment::Adjust::Borrow(_) => {
                 // Result is an rvalue.

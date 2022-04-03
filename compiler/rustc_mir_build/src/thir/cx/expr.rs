@@ -18,6 +18,7 @@ use rustc_middle::ty::{
     self, AdtKind, InlineConstSubsts, InlineConstSubstsParts, ScalarInt, Ty, UpvarSubsts, UserType,
 };
 use rustc_span::def_id::DefId;
+use rustc_span::symbol::Ident;
 use rustc_span::Span;
 use rustc_target::abi::VariantIdx;
 
@@ -117,6 +118,52 @@ impl<'tcx> Cx<'tcx> {
             Adjust::Pointer(PointerCast::Unsize) => {
                 adjust_span(&mut expr);
                 ExprKind::Pointer { cast: PointerCast::Unsize, source: self.thir.exprs.push(expr) }
+            }
+            Adjust::FromIntegerLiteral => {
+                let from_integer_literal_trait =
+                    self.tcx.require_lang_item(hir::LangItem::FromIntegerLiteral, Some(span));
+                let associated_items = self.tcx.associated_items(from_integer_literal_trait);
+
+                let input_type_did = associated_items
+                    .find_by_name_and_kind(
+                        self.tcx,
+                        Ident::from_str("Input"),
+                        ty::AssocKind::Type,
+                        from_integer_literal_trait,
+                    )
+                    .expect("no `Input` associated type found")
+                    .def_id;
+                let from_integer_literal_method_did = associated_items
+                    .find_by_name_and_kind(
+                        self.tcx,
+                        Ident::from_str("from_integer_literal"),
+                        ty::AssocKind::Fn,
+                        from_integer_literal_trait,
+                    )
+                    .expect("no `from_integer_literal` method found")
+                    .def_id;
+
+                let fn_call = self.method_callee(
+                    hir_expr,
+                    span,
+                    Some((
+                        from_integer_literal_method_did,
+                        ty::List::identity_for_item(
+                            self.tcx,
+                            adjustment.target.ty_adt_def().unwrap().did(),
+                        ),
+                    )),
+                );
+                dbg!(&fn_call); // ICE on next line
+                let fn_call = self.thir.exprs.push(fn_call);
+
+                ExprKind::Call {
+                    ty: self.thir[fn_call].ty,
+                    fun: fn_call,
+                    args: Box::new([self.thir.exprs.push(expr)]),
+                    from_hir_call: false,
+                    fn_span: span,
+                }
             }
             Adjust::Pointer(cast) => ExprKind::Pointer { cast, source: self.thir.exprs.push(expr) },
             Adjust::NeverToAny => ExprKind::NeverToAny { source: self.thir.exprs.push(expr) },

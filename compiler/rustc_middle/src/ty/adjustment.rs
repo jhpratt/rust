@@ -94,6 +94,8 @@ pub enum Adjust<'tcx> {
     /// Go from ! to any type.
     NeverToAny,
 
+    FromIntegerLiteral,
+
     /// Dereference once, producing a place.
     Deref(Option<OverloadedDeref<'tcx>>),
 

@@ -172,6 +172,15 @@ impl<'f, 'tcx> Coerce<'f, 'tcx> {
             return self.coerce_from_inference_variable(a, b, identity);
         }
 
+        if matches!(a.kind(), ty::Infer(ty::InferTy::IntVar(_)))
+            && matches!(b.kind(), ty::Adt(..))
+            && self.tcx.at(self.cause.span).is_from_integer_literal_raw(self.fcx.param_env.and(b))
+        {
+            debug!("coerce: unsuffixed integer literal to custom value");
+            let adjustment = Adjustment { kind: Adjust::FromIntegerLiteral, target: b };
+            return success(vec![adjustment], b, vec![]);
+        }
+
         // Consider coercing the subtype to a DST
         //
         // NOTE: this is wrapped in a `commit_if_ok` because it creates

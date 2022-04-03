@@ -557,6 +557,10 @@ impl<'a, 'tcx> ExprUseVisitor<'a, 'tcx> {
                     self.delegate_consume(&place_with_id, place_with_id.hir_id);
                 }
 
+                adjustment::Adjust::FromIntegerLiteral => {
+                    todo!() // FIXME(jhpratt)
+                }
+
                 adjustment::Adjust::Deref(None) => {}
 
                 // Autoderefs for overloaded Deref calls in fact reference

@@ -1,0 +1,41 @@
+// run-pass
+
+use std::num::{NonZeroI8, NonZeroU8};
+
+struct Alpha {
+    value: NonZeroU8,
+}
+struct Beta {
+    value: NonZeroI8,
+}
+
+const fn foo(_: NonZeroU8) {}
+const fn bar(_: NonZeroI8) {}
+
+const _: NonZeroU8 = 1;
+const _: NonZeroI8 = -1;
+const _: Alpha = Alpha { value: 1 };
+const _: () = foo(1);
+const _: () = bar(-1);
+const _: Beta = Beta { value: -1 };
+
+trait Foo {
+    fn foo(self) -> &'static str;
+}
+
+impl Foo for u8 {
+    fn foo(self) -> &'static str {
+        "zeroable"
+    }
+}
+
+impl Foo for NonZeroU8 {
+    fn foo(self) -> &'static str {
+        "nonzero"
+    }
+}
+
+fn main() {
+    // this cannot be the nonzero type for backward compatibility reasons
+    assert_eq!(Foo::foo(1), "zeroable");
+}

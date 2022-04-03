@@ -1189,6 +1189,11 @@ rustc_queries! {
         desc { "computing whether `{}` has a significant drop", env.value }
         remap_env_constness
     }
+    /// Query backing `Ty::is_from_integer_literal_raw`.
+    query is_from_integer_literal_raw(env: ty::ParamEnvAnd<'tcx, Ty<'tcx>>) -> bool {
+        desc { "computing whether `{}` is `FromIntegerLiteral`", env.value }
+        remap_env_constness
+    }
 
     /// Query backing `Ty::is_structural_eq_shallow`.
     ///

@@ -22,6 +22,13 @@ fn is_unpin_raw<'tcx>(tcx: TyCtxt<'tcx>, query: ty::ParamEnvAnd<'tcx, Ty<'tcx>>)
     is_item_raw(tcx, query, LangItem::Unpin)
 }
 
+fn is_from_integer_literal_raw<'tcx>(
+    tcx: TyCtxt<'tcx>,
+    query: ty::ParamEnvAnd<'tcx, Ty<'tcx>>,
+) -> bool {
+    is_item_raw(tcx, query, LangItem::FromIntegerLiteral)
+}
+
 fn is_item_raw<'tcx>(
     tcx: TyCtxt<'tcx>,
     query: ty::ParamEnvAnd<'tcx, Ty<'tcx>>,
@@ -46,6 +53,7 @@ pub(crate) fn provide(providers: &mut ty::query::Providers) {
         is_sized_raw,
         is_freeze_raw,
         is_unpin_raw,
+        is_from_integer_literal_raw,
         ..*providers
     };
 }

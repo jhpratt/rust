@@ -534,6 +534,9 @@ impl<'a, 'tcx> Lift<'tcx> for ty::adjustment::Adjust<'a> {
     fn lift_to_tcx(self, tcx: TyCtxt<'tcx>) -> Option<Self::Lifted> {
         match self {
             ty::adjustment::Adjust::NeverToAny => Some(ty::adjustment::Adjust::NeverToAny),
+            ty::adjustment::Adjust::FromIntegerLiteral => {
+                Some(ty::adjustment::Adjust::FromIntegerLiteral)
+            }
             ty::adjustment::Adjust::Pointer(ptr) => Some(ty::adjustment::Adjust::Pointer(ptr)),
             ty::adjustment::Adjust::Deref(overloaded) => {
                 tcx.lift(overloaded).map(ty::adjustment::Adjust::Deref)
