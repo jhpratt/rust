@@ -26,3 +26,13 @@ pub trait FromIntegerLiteral: Sized {
 
     fn from_integer_literal(i: Self::Input) -> Self;
 }
+
+#[cfg_attr(not(bootstrap), lang = "from_integer_literal_method")]
+#[unstable(
+    feature = "from_integer_literal_method",
+    issue = "none",
+    reason = "only used for desugaring"
+)]
+pub const fn from_integer_literal<T: ~const FromIntegerLiteral>(i: T::Input) -> T {
+    T::from_integer_literal(i)
+}

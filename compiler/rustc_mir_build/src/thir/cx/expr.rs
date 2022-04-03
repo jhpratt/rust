@@ -120,28 +120,31 @@ impl<'tcx> Cx<'tcx> {
                 ExprKind::Pointer { cast: PointerCast::Unsize, source: self.thir.exprs.push(expr) }
             }
             Adjust::FromIntegerLiteral => {
-                let from_integer_literal_trait =
-                    self.tcx.require_lang_item(hir::LangItem::FromIntegerLiteral, Some(span));
-                let associated_items = self.tcx.associated_items(from_integer_literal_trait);
+                // let from_integer_literal_trait =
+                //     self.tcx.require_lang_item(hir::LangItem::FromIntegerLiteral, Some(span));
+                // let associated_items = self.tcx.associated_items(from_integer_literal_trait);
 
-                let input_type_did = associated_items
-                    .find_by_name_and_kind(
-                        self.tcx,
-                        Ident::from_str("Input"),
-                        ty::AssocKind::Type,
-                        from_integer_literal_trait,
-                    )
-                    .expect("no `Input` associated type found")
-                    .def_id;
-                let from_integer_literal_method_did = associated_items
-                    .find_by_name_and_kind(
-                        self.tcx,
-                        Ident::from_str("from_integer_literal"),
-                        ty::AssocKind::Fn,
-                        from_integer_literal_trait,
-                    )
-                    .expect("no `from_integer_literal` method found")
-                    .def_id;
+                // let input_type_did = associated_items
+                //     .find_by_name_and_kind(
+                //         self.tcx,
+                //         Ident::from_str("Input"),
+                //         ty::AssocKind::Type,
+                //         from_integer_literal_trait,
+                //     )
+                //     .expect("no `Input` associated type found")
+                //     .def_id;
+                // let from_integer_literal_method_did = associated_items
+                //     .find_by_name_and_kind(
+                //         self.tcx,
+                //         Ident::from_str("from_integer_literal"),
+                //         ty::AssocKind::Fn,
+                //         from_integer_literal_trait,
+                //     )
+                //     .expect("no `from_integer_literal` method found")
+                //     .def_id;
+
+                let from_integer_literal_method_did =
+                    self.tcx.require_lang_item(hir::LangItem::FromIntegerLiteralMethod, Some(span));
 
                 let fn_call = self.method_callee(
                     hir_expr,

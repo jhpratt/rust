@@ -206,4 +206,4 @@ pub use self::unsize::DispatchFromDyn;
 pub use self::control_flow::ControlFlow;
 
 #[unstable(feature = "from_integer_literal", issue = "none")]
-pub use self::from_integer_literal::FromIntegerLiteral;
+pub use self::from_integer_literal::{from_integer_literal, FromIntegerLiteral};
