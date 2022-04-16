@@ -85,7 +85,6 @@ impl<'tcx> Cx<'tcx> {
         self.thir.exprs.push(expr)
     }
 
-    // #[tracing::instrument(skip(self))]
     fn apply_adjustment(
         &mut self,
         hir_expr: &'tcx hir::Expr<'tcx>,
@@ -120,21 +119,30 @@ impl<'tcx> Cx<'tcx> {
                 ExprKind::Pointer { cast: PointerCast::Unsize, source: self.thir.exprs.push(expr) }
             }
             Adjust::FromIntegerLiteral => {
-                let from_integer_literal_method_did =
-                    self.tcx.require_lang_item(hir::LangItem::FromIntegerLiteralMethod, Some(span));
+                let input_type_did =
+                    self.tcx.require_lang_item(hir::LangItem::FromIntegerLiteralType, Some(span));
+                let from_integer_literal_fn_did =
+                    self.tcx.require_lang_item(hir::LangItem::FromIntegerLiteralFn, Some(span));
+
+                // FIXME(jhpratt) normalize the type
+                expr.ty = self.tcx.type_of(input_type_did);
+                if !expr.ty.is_integral() {
+                    bug!("input type is not integral: {:?}", expr.ty);
+                }
 
                 let fun = self.method_callee(
                     hir_expr,
                     span,
                     Some((
-                        from_integer_literal_method_did,
-                        ty::List::for_item(self.tcx, from_integer_literal_method_did, |_, _| {
+                        from_integer_literal_fn_did,
+                        ty::List::for_item(self.tcx, from_integer_literal_fn_did, |_, _| {
                             adjustment.target.into()
                         }),
                     )),
                 );
                 let fun = self.thir.exprs.push(fun);
 
+                // FIXME(jhpratt) always const eval
                 ExprKind::Call {
                     ty: self.thir[fun].ty,
                     fun,
