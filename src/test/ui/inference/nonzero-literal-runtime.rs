@@ -1,5 +1,8 @@
 // run-pass
 
+#![feature(from_integer_literal)]
+#![allow(dead_code)]
+
 use std::num::{NonZeroI8, NonZeroU8};
 
 struct Alpha {
@@ -35,7 +38,28 @@ impl Foo for NonZeroU8 {
     }
 }
 
+trait Bar {
+    // Make sure autoref works when called as a method.
+    fn bar(&self) -> &'static str;
+}
+
+impl Bar for u8 {
+    fn bar(&self) -> &'static str {
+        "zeroable"
+    }
+}
+
+impl Bar for NonZeroI8 {
+    fn bar(&self) -> &'static str {
+        "nonzero"
+    }
+}
+
 fn main() {
-    // this cannot be the nonzero type for backward compatibility reasons
+    // Anything other than "zeroable" would _technically_ be permitted, but
+    // would cause enormous compatibility issues.
     assert_eq!(Foo::foo(1), "zeroable");
+    assert_eq!(1.foo(), "zeroable");
+    assert_eq!(Bar::bar(&1), "zeroable");
+    assert_eq!(1.bar(), "zeroable");
 }

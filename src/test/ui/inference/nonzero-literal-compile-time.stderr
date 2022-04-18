@@ -1,0 +1,135 @@
+error[E0080]: evaluation of constant value failed
+  --> $SRC_DIR/core/src/num/nonzero.rs:LL:COL
+   |
+LL | / nonzero_integers! {
+LL | |     #[stable(feature = "nonzero", since = "1.28.0")] #[rustc_const_stable(feature = "nonzero", since = "1.28.0")] NonZeroU8(u8);
+LL | |     #[stable(feature = "nonzero", since = "1.28.0")] #[rustc_const_stable(feature = "nonzero", since = "1.28.0")] NonZeroU16(u16);
+LL | |     #[stable(feature = "nonzero", since = "1.28.0")] #[rustc_const_stable(feature = "nonzero", since = "1.28.0")] NonZeroU32(u32);
+...  |
+LL | |     #[stable(feature = "signed_nonzero", since = "1.34.0")] #[rustc_const_stable(feature = "signed_nonzero", since = "1.34.0")] NonZeroIs...
+LL | | }
+   | | ^
+   | | |
+   | |_the evaluated program panicked at 'expected non-zero value', $SRC_DIR/core/src/num/nonzero.rs:LL:COL
+   |   inside `<NonZeroU8 as FromIntegerLiteral>::from_integer_literal` at $SRC_DIR/core/src/panic.rs:LL:COL
+   |
+  ::: $DIR/nonzero-literal-compile-time.rs:17:22
+   |
+LL |   const _: NonZeroU8 = 0;
+   |                        - inside `_` at $DIR/nonzero-literal-compile-time.rs:17:22
+   |
+   = note: this error originates in the macro `$crate::panic::panic_2021` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0080]: evaluation of constant value failed
+  --> $SRC_DIR/core/src/num/nonzero.rs:LL:COL
+   |
+LL | / nonzero_integers! {
+LL | |     #[stable(feature = "nonzero", since = "1.28.0")] #[rustc_const_stable(feature = "nonzero", since = "1.28.0")] NonZeroU8(u8);
+LL | |     #[stable(feature = "nonzero", since = "1.28.0")] #[rustc_const_stable(feature = "nonzero", since = "1.28.0")] NonZeroU16(u16);
+LL | |     #[stable(feature = "nonzero", since = "1.28.0")] #[rustc_const_stable(feature = "nonzero", since = "1.28.0")] NonZeroU32(u32);
+...  |
+LL | |     #[stable(feature = "signed_nonzero", since = "1.34.0")] #[rustc_const_stable(feature = "signed_nonzero", since = "1.34.0")] NonZeroIs...
+LL | | }
+   | | ^
+   | | |
+   | |_the evaluated program panicked at 'expected non-zero value', $SRC_DIR/core/src/num/nonzero.rs:LL:COL
+   |   inside `<NonZeroI8 as FromIntegerLiteral>::from_integer_literal` at $SRC_DIR/core/src/panic.rs:LL:COL
+   |
+  ::: $DIR/nonzero-literal-compile-time.rs:18:22
+   |
+LL |   const _: NonZeroI8 = 0;
+   |                        - inside `_` at $DIR/nonzero-literal-compile-time.rs:18:22
+   |
+   = note: this error originates in the macro `$crate::panic::panic_2021` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0080]: evaluation of constant value failed
+  --> $SRC_DIR/core/src/num/nonzero.rs:LL:COL
+   |
+LL | / nonzero_integers! {
+LL | |     #[stable(feature = "nonzero", since = "1.28.0")] #[rustc_const_stable(feature = "nonzero", since = "1.28.0")] NonZeroU8(u8);
+LL | |     #[stable(feature = "nonzero", since = "1.28.0")] #[rustc_const_stable(feature = "nonzero", since = "1.28.0")] NonZeroU16(u16);
+LL | |     #[stable(feature = "nonzero", since = "1.28.0")] #[rustc_const_stable(feature = "nonzero", since = "1.28.0")] NonZeroU32(u32);
+...  |
+LL | |     #[stable(feature = "signed_nonzero", since = "1.34.0")] #[rustc_const_stable(feature = "signed_nonzero", since = "1.34.0")] NonZeroIs...
+LL | | }
+   | | ^
+   | | |
+   | |_the evaluated program panicked at 'expected non-zero value', $SRC_DIR/core/src/num/nonzero.rs:LL:COL
+   |   inside `<NonZeroU8 as FromIntegerLiteral>::from_integer_literal` at $SRC_DIR/core/src/panic.rs:LL:COL
+   |
+  ::: $DIR/nonzero-literal-compile-time.rs:19:19
+   |
+LL |   const _: () = foo(0);
+   |                     - inside `_` at $DIR/nonzero-literal-compile-time.rs:19:19
+   |
+   = note: this error originates in the macro `$crate::panic::panic_2021` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0080]: evaluation of constant value failed
+  --> $SRC_DIR/core/src/num/nonzero.rs:LL:COL
+   |
+LL | / nonzero_integers! {
+LL | |     #[stable(feature = "nonzero", since = "1.28.0")] #[rustc_const_stable(feature = "nonzero", since = "1.28.0")] NonZeroU8(u8);
+LL | |     #[stable(feature = "nonzero", since = "1.28.0")] #[rustc_const_stable(feature = "nonzero", since = "1.28.0")] NonZeroU16(u16);
+LL | |     #[stable(feature = "nonzero", since = "1.28.0")] #[rustc_const_stable(feature = "nonzero", since = "1.28.0")] NonZeroU32(u32);
+...  |
+LL | |     #[stable(feature = "signed_nonzero", since = "1.34.0")] #[rustc_const_stable(feature = "signed_nonzero", since = "1.34.0")] NonZeroIs...
+LL | | }
+   | | ^
+   | | |
+   | |_the evaluated program panicked at 'expected non-zero value', $SRC_DIR/core/src/num/nonzero.rs:LL:COL
+   |   inside `<NonZeroI8 as FromIntegerLiteral>::from_integer_literal` at $SRC_DIR/core/src/panic.rs:LL:COL
+   |
+  ::: $DIR/nonzero-literal-compile-time.rs:20:19
+   |
+LL |   const _: () = bar(0);
+   |                     - inside `_` at $DIR/nonzero-literal-compile-time.rs:20:19
+   |
+   = note: this error originates in the macro `$crate::panic::panic_2021` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0080]: evaluation of constant value failed
+  --> $SRC_DIR/core/src/num/nonzero.rs:LL:COL
+   |
+LL | / nonzero_integers! {
+LL | |     #[stable(feature = "nonzero", since = "1.28.0")] #[rustc_const_stable(feature = "nonzero", since = "1.28.0")] NonZeroU8(u8);
+LL | |     #[stable(feature = "nonzero", since = "1.28.0")] #[rustc_const_stable(feature = "nonzero", since = "1.28.0")] NonZeroU16(u16);
+LL | |     #[stable(feature = "nonzero", since = "1.28.0")] #[rustc_const_stable(feature = "nonzero", since = "1.28.0")] NonZeroU32(u32);
+...  |
+LL | |     #[stable(feature = "signed_nonzero", since = "1.34.0")] #[rustc_const_stable(feature = "signed_nonzero", since = "1.34.0")] NonZeroIs...
+LL | | }
+   | | ^
+   | | |
+   | |_the evaluated program panicked at 'expected non-zero value', $SRC_DIR/core/src/num/nonzero.rs:LL:COL
+   |   inside `<NonZeroU8 as FromIntegerLiteral>::from_integer_literal` at $SRC_DIR/core/src/panic.rs:LL:COL
+   |
+  ::: $DIR/nonzero-literal-compile-time.rs:22:12
+   |
+LL |       value: 0,
+   |              - inside `_` at $DIR/nonzero-literal-compile-time.rs:22:12
+   |
+   = note: this error originates in the macro `$crate::panic::panic_2021` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0080]: evaluation of constant value failed
+  --> $SRC_DIR/core/src/num/nonzero.rs:LL:COL
+   |
+LL | / nonzero_integers! {
+LL | |     #[stable(feature = "nonzero", since = "1.28.0")] #[rustc_const_stable(feature = "nonzero", since = "1.28.0")] NonZeroU8(u8);
+LL | |     #[stable(feature = "nonzero", since = "1.28.0")] #[rustc_const_stable(feature = "nonzero", since = "1.28.0")] NonZeroU16(u16);
+LL | |     #[stable(feature = "nonzero", since = "1.28.0")] #[rustc_const_stable(feature = "nonzero", since = "1.28.0")] NonZeroU32(u32);
+...  |
+LL | |     #[stable(feature = "signed_nonzero", since = "1.34.0")] #[rustc_const_stable(feature = "signed_nonzero", since = "1.34.0")] NonZeroIs...
+LL | | }
+   | | ^
+   | | |
+   | |_the evaluated program panicked at 'expected non-zero value', $SRC_DIR/core/src/num/nonzero.rs:LL:COL
+   |   inside `<NonZeroI8 as FromIntegerLiteral>::from_integer_literal` at $SRC_DIR/core/src/panic.rs:LL:COL
+   |
+  ::: $DIR/nonzero-literal-compile-time.rs:25:12
+   |
+LL |       value: 0,
+   |              - inside `_` at $DIR/nonzero-literal-compile-time.rs:25:12
+   |
+   = note: this error originates in the macro `$crate::panic::panic_2021` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: aborting due to 6 previous errors
+
+For more information about this error, try `rustc --explain E0080`.

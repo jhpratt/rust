@@ -26,23 +26,3 @@ pub trait FromIntegerLiteral: Sized {
 
     fn from_integer_literal(i: Self::Input) -> Self;
 }
-
-// This is needed because the compiler doesn't know that `FromIntegerLiteral` implementations are
-// always `impl const`.
-#[cfg_attr(not(bootstrap), lang = "from_integer_literal_fn")]
-#[unstable(
-    feature = "from_integer_literal_internals",
-    issue = "none",
-    reason = "only used for desugaring"
-)]
-pub const fn from_integer_literal<T: ~const FromIntegerLiteral>(i: T::Input) -> T {
-    T::from_integer_literal(i)
-}
-
-#[cfg_attr(not(bootstrap), lang = "from_integer_literal_type")]
-#[unstable(
-    feature = "from_integer_literal_internals",
-    issue = "none",
-    reason = "only used for desugaring"
-)]
-pub type Input<T> = <T as FromIntegerLiteral>::Input;

@@ -18,7 +18,8 @@ use rustc_middle::ty::{
     self, AdtKind, InlineConstSubsts, InlineConstSubstsParts, ScalarInt, Ty, UpvarSubsts, UserType,
 };
 use rustc_span::def_id::DefId;
-use rustc_span::Span;
+use rustc_span::symbol::Ident;
+use rustc_span::{sym, Span};
 use rustc_target::abi::VariantIdx;
 
 impl<'tcx> Cx<'tcx> {
@@ -119,23 +120,52 @@ impl<'tcx> Cx<'tcx> {
                 ExprKind::Pointer { cast: PointerCast::Unsize, source: self.thir.exprs.push(expr) }
             }
             Adjust::FromIntegerLiteral => {
-                let input_type_did =
-                    self.tcx.require_lang_item(hir::LangItem::FromIntegerLiteralType, Some(span));
-                let from_integer_literal_fn_did =
-                    self.tcx.require_lang_item(hir::LangItem::FromIntegerLiteralFn, Some(span));
+                let Some(from_integer_literal_impl) = self.tcx.find_map_relevant_impl(
+                    self.tcx.require_lang_item(hir::LangItem::FromIntegerLiteral, Some(span)),
+                    adjustment.target,
+                    Some
+                ) else {
+                    // This adjustment should not be created unless the type implements
+                    // `FromIntegerLiteral`.
+                    bug!("type should implement `FromIntegerLiteral` but does not: {:?}", adjustment.target);
+                };
+                let associated_items = self.tcx.associated_items(from_integer_literal_impl);
 
-                // FIXME(jhpratt) normalize the type
-                expr.ty = self.tcx.type_of(input_type_did);
+                let input_type_def_id = associated_items
+                    .find_by_name_and_kind(
+                        self.tcx,
+                        Ident::with_dummy_span(sym::Input),
+                        ty::AssocKind::Type,
+                        from_integer_literal_impl,
+                    )
+                    .expect("no `Input` associated type found")
+                    .def_id;
+                // FIXME(jhpratt) This type should be normalized. Once this occurs,
+                // `input_type_def_id` can be eliminated and replaced by a simple "infer" type.
+                expr.ty = self.tcx.type_of(input_type_def_id);
                 if !expr.ty.is_integral() {
+                    // This should be caught by the sealed trait in `core`. However, it's a hard
+                    // requirement for the code to be correct, so we also check it here to be
+                    // certain.
                     bug!("input type is not integral: {:?}", expr.ty);
                 }
+
+                let constructor_def_id = associated_items
+                    .find_by_name_and_kind(
+                        self.tcx,
+                        Ident::with_dummy_span(sym::from_integer_literal),
+                        ty::AssocKind::Fn,
+                        from_integer_literal_impl,
+                    )
+                    .expect("no `from_integer_literal` method found")
+                    .def_id;
 
                 let fun = self.method_callee(
                     hir_expr,
                     span,
                     Some((
-                        from_integer_literal_fn_did,
-                        ty::List::for_item(self.tcx, from_integer_literal_fn_did, |_, _| {
+                        constructor_def_id,
+                        ty::List::for_item(self.tcx, constructor_def_id, |_, _| {
                             adjustment.target.into()
                         }),
                     )),

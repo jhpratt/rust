@@ -709,8 +709,6 @@ symbols! {
         from_desugaring,
         from_generator,
         from_integer_literal,
-        from_integer_literal_fn,
-        from_integer_literal_type,
         from_iter,
         from_method,
         from_output,

@@ -91,9 +91,8 @@ macro_rules! nonzero_integers {
                 type Input = $Int;
 
                 fn from_integer_literal(i: Self::Input) -> Self {
-                    if i == 0 {
-                        panic!("expected non-zero value")
-                    }
+                    // FIXME use `assert_ne!` when permitted in const contexts
+                    assert!(i != 0, "expected non-zero value");
 
                     // SAFETY: We just checked if the value is zero.
                     unsafe { Self(i) }
