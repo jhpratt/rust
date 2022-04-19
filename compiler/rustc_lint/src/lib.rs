@@ -48,6 +48,7 @@ extern crate rustc_session;
 
 mod array_into_iter;
 pub mod builtin;
+mod const_from_integer_literal;
 mod context;
 mod early;
 mod enum_intrinsics_non_enums;
@@ -83,6 +84,7 @@ use rustc_span::Span;
 
 use array_into_iter::ArrayIntoIter;
 use builtin::*;
+use const_from_integer_literal::ConstFromIntegerLiteral;
 use enum_intrinsics_non_enums::EnumIntrinsicsNonEnums;
 use hidden_unicode_codepoints::*;
 use internal::*;
@@ -183,6 +185,7 @@ macro_rules! late_lint_passes {
                 EnumIntrinsicsNonEnums: EnumIntrinsicsNonEnums,
                 InvalidAtomicOrdering: InvalidAtomicOrdering,
                 NamedAsmLabels: NamedAsmLabels,
+                ConstFromIntegerLiteral: ConstFromIntegerLiteral,
             ]
         );
     };

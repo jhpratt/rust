@@ -17,7 +17,6 @@ mod sealed {
     impl Integer for isize {}
 }
 
-// FIXME(jhpratt) Enforce all implementations are `const`.
 #[cfg_attr(not(bootstrap), lang = "from_integer_literal")]
 #[unstable(feature = "from_integer_literal", issue = "none")]
 pub trait FromIntegerLiteral: Sized {

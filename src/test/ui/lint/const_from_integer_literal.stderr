@@ -1,0 +1,17 @@
+error: `FromIntegerLiteral` implementations must be `const`
+  --> $DIR/const_from_integer_literal.rs:9:1
+   |
+LL | / impl FromIntegerLiteral for Foo {
+LL | |
+LL | |     type Input = u8;
+LL | |
+...  |
+LL | |     }
+LL | | }
+   | |_^
+   |
+   = note: `#[deny(const_from_integer_literal)]` on by default
+   = note: this ensures that the value can be used in a const context
+
+error: aborting due to previous error
+
