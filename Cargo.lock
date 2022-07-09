@@ -4239,6 +4239,7 @@ dependencies = [
  "rustc_privacy",
  "rustc_query_impl",
  "rustc_resolve",
+ "rustc_restrictions",
  "rustc_serialize",
  "rustc_session",
  "rustc_span",
@@ -4639,6 +4640,19 @@ dependencies = [
  "rustc_span",
  "smallvec",
  "thin-vec",
+ "tracing",
+]
+
+[[package]]
+name = "rustc_restrictions"
+version = "0.0.0"
+dependencies = [
+ "rustc_errors",
+ "rustc_hir",
+ "rustc_macros",
+ "rustc_middle",
+ "rustc_session",
+ "rustc_span",
  "tracing",
 ]
 

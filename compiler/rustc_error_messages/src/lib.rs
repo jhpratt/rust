@@ -66,10 +66,11 @@ fluent_messages! {
     privacy => "../locales/en-US/privacy.ftl",
     query_system => "../locales/en-US/query_system.ftl",
     resolve => "../locales/en-US/resolve.ftl",
+    restrictions => "../locales/en-US/restrictions.ftl",
+    trait_selection => "../locales/en-US/trait_selection.ftl",
     save_analysis => "../locales/en-US/save_analysis.ftl",
     session => "../locales/en-US/session.ftl",
     symbol_mangling => "../locales/en-US/symbol_mangling.ftl",
-    trait_selection => "../locales/en-US/trait_selection.ftl",
     ty_utils => "../locales/en-US/ty_utils.ftl",
     // tidy-alphabetical-end
 }
