@@ -1462,6 +1462,11 @@ impl<'a> Parser<'a> {
             return Ok(Restriction::implied().with_span(self.token.span.shrink_to_lo()));
         }
 
+        let gate = |span| {
+            self.sess.gated_spans.gate(sym::restrictions, span);
+            span
+        };
+
         let lo = self.prev_token.span;
 
         if self.check(&token::OpenDelim(Delimiter::Parenthesis)) {
@@ -1476,7 +1481,7 @@ impl<'a> Parser<'a> {
                 let path = self.parse_path(PathStyle::Mod)?; // `path`
                 self.expect(&token::CloseDelim(Delimiter::Parenthesis))?; // `)`
                 return Ok(Restriction::restricted(P(path), ast::DUMMY_NODE_ID)
-                    .with_span(lo.to(self.prev_token.span)));
+                    .with_span(lo.to(gate(lo.to(self.prev_token.span)))));
             } else if self.look_ahead(2, |t| t == &token::CloseDelim(Delimiter::Parenthesis))
                 && self.is_keyword_ahead(1, &[kw::Crate, kw::Super, kw::SelfLower])
             {
@@ -1485,7 +1490,7 @@ impl<'a> Parser<'a> {
                 let path = self.parse_path(PathStyle::Mod)?; // `crate`/`super`/`self`
                 self.expect(&token::CloseDelim(Delimiter::Parenthesis))?; // `)`
                 return Ok(Restriction::restricted(P(path), ast::DUMMY_NODE_ID)
-                    .with_span(lo.to(self.prev_token.span)));
+                    .with_span(gate(lo.to(self.prev_token.span))));
             } else if let FollowedByType::No = fbt {
                 // Provide this diagnostic if a type cannot follow;
                 // in particular, if this is not a tuple struct.
@@ -1494,7 +1499,7 @@ impl<'a> Parser<'a> {
             }
         }
 
-        Ok(Restriction::unrestricted().with_span(lo))
+        Ok(Restriction::unrestricted().with_span(gate(lo)))
     }
 
     /// Recovery for e.g. `kw(something) fn ...` or `struct X { kw(something) y: Z }`
