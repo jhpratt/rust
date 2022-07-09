@@ -33,7 +33,10 @@ use crate::late::{PatternSource, Rib};
 use crate::path_names_to_string;
 use crate::{AmbiguityError, AmbiguityErrorMisc, AmbiguityKind, BindingError, Finalize};
 use crate::{HasGenericParams, MacroRulesScope, Module, ModuleKind, ModuleOrUniformRoot};
-use crate::{LexicalScopeBinding, NameBinding, NameBindingKind, PrivacyError, VisResolutionError};
+use crate::{
+    LexicalScopeBinding, NameBinding, NameBindingKind, PrivacyError, RestrictionResolutionError,
+    VisResolutionError,
+};
 use crate::{ParentScope, PathResult, ResolutionError, Resolver, Scope, ScopeSet};
 use crate::{Segment, UseError};
 
@@ -964,6 +967,57 @@ impl<'a> Resolver<'a> {
                 self.session.create_err(errs::Indeterminate(span))
             }
             VisResolutionError::ModuleOnly(span) => self.session.create_err(errs::ModuleOnly(span)),
+        }
+        .emit()
+    }
+
+    pub(crate) fn report_restriction_error(
+        &mut self,
+        vis_resolution_error: RestrictionResolutionError<'_>,
+    ) -> ErrorGuaranteed {
+        match vis_resolution_error {
+            RestrictionResolutionError::Relative2018(span, path) => {
+                let mut err = self.session.struct_span_err(
+                    span,
+                    "relative paths are not supported in restrictions in 2018 edition or later",
+                );
+                err.span_suggestion(
+                    path.span,
+                    "try",
+                    format!("crate::{}", pprust::path_to_string(&path)),
+                    Applicability::MaybeIncorrect,
+                );
+                err
+            }
+            RestrictionResolutionError::AncestorOnly(span) => struct_span_err!(
+                self.session,
+                span,
+                E0742,
+                "restrictions can only be restricted to ancestor modules"
+            ),
+            RestrictionResolutionError::FailedToResolve(span, label, suggestion) => {
+                self.into_struct_error(span, ResolutionError::FailedToResolve { label, suggestion })
+            }
+            RestrictionResolutionError::ExpectedFound(span, path_str, res) => {
+                let mut err = struct_span_err!(
+                    self.session,
+                    span,
+                    E0577,
+                    "expected module, found {} `{path_str}`",
+                    res.descr(),
+                );
+                err.span_label(span, "not a module");
+                err
+            }
+            RestrictionResolutionError::Indeterminate(span) => struct_span_err!(
+                self.session,
+                span,
+                E0578,
+                "cannot determine resolution for the restriction"
+            ),
+            RestrictionResolutionError::ModuleOnly(span) => {
+                self.session.struct_span_err(span, "restriction must resolve to a module")
+            }
         }
         .emit()
     }

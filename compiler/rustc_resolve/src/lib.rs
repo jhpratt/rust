@@ -251,6 +251,15 @@ enum VisResolutionError<'a> {
     ModuleOnly(Span),
 }
 
+enum RestrictionResolutionError<'a> {
+    Relative2018(Span, &'a ast::Path),
+    AncestorOnly(Span),
+    FailedToResolve(Span, String, Option<Suggestion>),
+    ExpectedFound(Span, String, Res),
+    Indeterminate(Span),
+    ModuleOnly(Span),
+}
+
 /// A minimal representation of a path segment. We use this in resolve because we synthesize 'path
 /// segments' which don't have the rest of an AST or HIR `PathSegment`.
 #[derive(Clone, Copy, Debug)]
@@ -935,6 +944,7 @@ pub struct Resolver<'a> {
     /// Visibilities in "lowered" form, for all entities that have them.
     visibilities: FxHashMap<LocalDefId, ty::Visibility>,
     has_pub_restricted: bool,
+    impl_restrictions: FxHashMap<LocalDefId, ty::Restriction>,
     used_imports: FxHashSet<NodeId>,
     maybe_unused_trait_imports: FxIndexSet<LocalDefId>,
     maybe_unused_extern_crates: Vec<(LocalDefId, Span)>,
@@ -1290,6 +1300,7 @@ impl<'a> Resolver<'a> {
 
             glob_map: Default::default(),
             visibilities,
+            impl_restrictions: FxHashMap::default(),
             has_pub_restricted: false,
             used_imports: FxHashSet::default(),
             maybe_unused_trait_imports: Default::default(),
@@ -1409,6 +1420,7 @@ impl<'a> Resolver<'a> {
         let proc_macros = self.proc_macros.iter().map(|id| self.local_def_id(*id)).collect();
         let expn_that_defined = self.expn_that_defined;
         let visibilities = self.visibilities;
+        let impl_restrictions = self.impl_restrictions;
         let has_pub_restricted = self.has_pub_restricted;
         let extern_crate_map = self.extern_crate_map;
         let reexport_map = self.reexport_map;
@@ -1422,6 +1434,7 @@ impl<'a> Resolver<'a> {
         let global_ctxt = ResolverGlobalCtxt {
             expn_that_defined,
             visibilities,
+            impl_restrictions,
             has_pub_restricted,
             effective_visibilities,
             extern_crate_map,
@@ -1466,6 +1479,7 @@ impl<'a> Resolver<'a> {
         let global_ctxt = ResolverGlobalCtxt {
             expn_that_defined: self.expn_that_defined.clone(),
             visibilities: self.visibilities.clone(),
+            impl_restrictions: self.impl_restrictions.clone(),
             has_pub_restricted: self.has_pub_restricted,
             extern_crate_map: self.extern_crate_map.clone(),
             reexport_map: self.reexport_map.clone(),
