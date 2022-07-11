@@ -1190,6 +1190,7 @@ pub(super) fn crate_hash(tcx: TyCtxt<'_>, crate_num: CrateNum) -> Svh {
         resolutions.visibilities.hash_stable(&mut hcx, &mut stable_hasher);
         resolutions.has_pub_restricted.hash_stable(&mut hcx, &mut stable_hasher);
         resolutions.impl_restrictions.hash_stable(&mut hcx, &mut stable_hasher);
+        resolutions.mut_restrictions.hash_stable(&mut hcx, &mut stable_hasher);
         stable_hasher.finish()
     });
 
