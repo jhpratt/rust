@@ -280,6 +280,8 @@ fn mir_const(tcx: TyCtxt<'_>, def: ty::WithOptConstParam<LocalDefId>) -> &Steal<
         }
     }
 
+    tcx.ensure().check_mut_restriction(def.did);
+
     // has_ffi_unwind_calls query uses the raw mir, so make sure it is run.
     tcx.ensure().has_ffi_unwind_calls(def.did);
 
