@@ -870,6 +870,7 @@ impl<'a, 'tcx> CrateMetadataRef<'a> {
                     did: self.local_def_id(index),
                     name: self.item_name(index),
                     vis: self.get_visibility(index),
+                    mut_restriction: self.get_mut_restriction(index),
                 })
                 .collect(),
             adt_kind,
@@ -925,6 +926,14 @@ impl<'a, 'tcx> CrateMetadataRef<'a> {
             .unwrap()
             .decode(self)
             .map_id(|index| self.local_def_id(index))
+    }
+
+    fn get_mut_restriction(self, id: DefIndex) -> ty::Restriction {
+        self.root
+            .tables
+            .mut_restriction
+            .get(self, id)
+            .map_or(ty::Restriction::Unrestricted, |restriction| restriction.decode(self))
     }
 
     fn get_trait_item_def_id(self, id: DefIndex) -> Option<DefId> {
