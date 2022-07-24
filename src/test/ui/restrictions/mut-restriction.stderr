@@ -35,18 +35,6 @@ LL |         pub mut(self) alpha: u8,
    |             ^^^^^^^^^
 
 error: mutable use of restricted field
-  --> $DIR/mut-restriction.rs:47:9
-   |
-LL |         foo.alpha = 1;
-   |         ^^^^^^^^^^^^^
-   |
-note: mutability restricted here
-  --> $DIR/mut-restriction.rs:6:13
-   |
-LL |         pub mut(self) alpha: u8,
-   |             ^^^^^^^^^
-
-error: mutable use of restricted field
   --> $DIR/mut-restriction.rs:38:5
    |
 LL |     foo.alpha = 1;
@@ -88,6 +76,18 @@ error: mutable use of restricted field
    |
 LL |     let _alpha = &mut foo.alpha;
    |                  ^^^^^^^^^^^^^^
+   |
+note: mutability restricted here
+  --> $DIR/mut-restriction.rs:6:13
+   |
+LL |         pub mut(self) alpha: u8,
+   |             ^^^^^^^^^
+
+error: mutable use of restricted field
+  --> $DIR/mut-restriction.rs:47:9
+   |
+LL |         foo.alpha = 1;
+   |         ^^^^^^^^^^^^^
    |
 note: mutability restricted here
   --> $DIR/mut-restriction.rs:6:13
