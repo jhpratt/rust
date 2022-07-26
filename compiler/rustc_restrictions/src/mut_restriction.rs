@@ -1,4 +1,5 @@
-use rustc_hir::def_id::LocalDefId;
+use rustc_hir::def::Res;
+use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_hir::Node;
 use rustc_macros::Diagnostic;
 use rustc_middle::mir::visit::{PlaceContext, Visitor};
@@ -11,7 +12,12 @@ use rustc_middle::ty::{Restriction, TyCtxt, WithOptConstParam};
 use rustc_span::Span;
 
 pub(crate) fn provide(providers: &mut Providers) {
-    *providers = Providers { mut_restriction, check_mut_restriction, ..*providers };
+    *providers = Providers {
+        mut_restriction,
+        check_mut_restriction,
+        adt_expression_restriction,
+        ..*providers
+    };
 }
 
 #[derive(Diagnostic)]
@@ -74,6 +80,17 @@ fn check_mut_restriction(tcx: TyCtxt<'_>, def_id: LocalDefId) {
     checker.visit_body(body);
 }
 
+/// Obtain the restriction on ADT expressions. This occurs when an ADT field has its mutability
+/// restricted.
+// This is a query to allow the compiler to cache the output. This avoids the need to recompute the
+// same information for every ADT expression.
+fn adt_expression_restriction(tcx: TyCtxt<'_>, variant_def_id: DefId) -> Restriction {
+    let res = Res::Def(tcx.def_kind(variant_def_id), variant_def_id);
+    let variant = tcx.expect_variant_res(res);
+
+    Restriction::strictest_of(variant.fields.iter().map(|field| field.mut_restriction), tcx)
+}
+
 struct MutRestrictionChecker<'a, 'tcx> {
     tcx: TyCtxt<'tcx>,
     body: &'a Body<'tcx>,
@@ -119,16 +136,12 @@ impl<'tcx> Visitor<'tcx> for MutRestrictionChecker<'_, 'tcx> {
         }
     }
 
-    // TODO(jhpratt) make this into a query to take advantage of caching
     fn visit_rvalue(&mut self, rvalue: &Rvalue<'tcx>, location: Location) {
         if let Rvalue::Aggregate(box AggregateKind::Adt(def_id, variant_idx, _, _, _), _) = rvalue {
             let adt_def = self.tcx.type_of(def_id).ty_adt_def().unwrap();
             let variant = adt_def.variant(*variant_idx);
 
-            let construction_restriction = Restriction::strictest_of(
-                variant.fields.iter().map(|field| field.mut_restriction),
-                self.tcx,
-            );
+            let construction_restriction = self.tcx.adt_expression_restriction(variant.def_id);
 
             let body_did = self.body.source.instance.def_id();
             if construction_restriction.is_restricted_in(body_did, self.tcx) {
