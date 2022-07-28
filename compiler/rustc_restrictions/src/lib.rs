@@ -1,4 +1,5 @@
 #![doc(html_root_url = "https://doc.rust-lang.org/nightly/nightly-rustc/")]
+#![feature(box_patterns)]
 
 mod impl_restriction;
 mod mut_restriction;

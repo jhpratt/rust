@@ -2,7 +2,9 @@ use rustc_hir::def_id::LocalDefId;
 use rustc_hir::Node;
 use rustc_macros::Diagnostic;
 use rustc_middle::mir::visit::{PlaceContext, Visitor};
-use rustc_middle::mir::{Body, Location, Place, ProjectionElem, Statement, Terminator};
+use rustc_middle::mir::{
+    AggregateKind, Body, Location, Place, ProjectionElem, Rvalue, Statement, Terminator,
+};
 use rustc_middle::span_bug;
 use rustc_middle::ty::query::Providers;
 use rustc_middle::ty::{Restriction, TyCtxt, WithOptConstParam};
@@ -19,6 +21,18 @@ struct MutOfRestrictedField {
     mut_span: Span,
     #[note]
     restriction_span: Span,
+}
+
+#[derive(Diagnostic)]
+#[diag(restriction_construction_of_ty_with_mut_restricted_field)]
+struct ConstructionOfTyWithMutRestrictedField {
+    #[primary_span]
+    construction_span: Span,
+    #[label]
+    restriction_span: Span,
+    #[note]
+    note: (),
+    ty: &'static str,
 }
 
 fn mut_restriction(tcx: TyCtxt<'_>, def_id: LocalDefId) -> Restriction {
@@ -103,5 +117,30 @@ impl<'tcx> Visitor<'tcx> for MutRestrictionChecker<'_, 'tcx> {
                 _ => {}
             }
         }
+    }
+
+    // TODO(jhpratt) make this into a query to take advantage of caching
+    fn visit_rvalue(&mut self, rvalue: &Rvalue<'tcx>, location: Location) {
+        if let Rvalue::Aggregate(box AggregateKind::Adt(def_id, variant_idx, _, _, _), _) = rvalue {
+            let adt_def = self.tcx.type_of(def_id).ty_adt_def().unwrap();
+            let variant = adt_def.variant(*variant_idx);
+
+            let construction_restriction = Restriction::strictest_of(
+                variant.fields.iter().map(|field| field.mut_restriction),
+                self.tcx,
+            );
+
+            let body_did = self.body.source.instance.def_id();
+            if construction_restriction.is_restricted_in(body_did, self.tcx) {
+                self.tcx.sess.emit_err(ConstructionOfTyWithMutRestrictedField {
+                    construction_span: self.span,
+                    restriction_span: construction_restriction.expect_span(),
+                    note: (),
+                    ty: adt_def.variant_descr(),
+                });
+            }
+        }
+
+        self.super_rvalue(rvalue, location);
     }
 }
