@@ -19,7 +19,7 @@ pub(crate) fn provide(providers: &mut Providers) {
 struct MutOfRestrictedField {
     #[primary_span]
     mut_span: Span,
-    #[note]
+    #[label]
     restriction_span: Span,
 }
 

@@ -16,7 +16,7 @@ pub(crate) fn provide(providers: &mut Providers) {
 struct ImplOfRestrictedTrait {
     #[primary_span]
     impl_span: Span,
-    #[note]
+    #[label]
     restriction_span: Span,
 }
 
