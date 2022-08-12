@@ -2607,13 +2607,14 @@ impl VisibilityKind {
 
 /// Field definition in a struct, variant or union.
 ///
-/// E.g., `bar: usize` as in `struct Foo { bar: usize }`.
+/// E.g., `unsafe? bar: usize` as in `struct Foo { unsafe? bar: usize }`.
 #[derive(Clone, Encodable, Decodable, Debug)]
 pub struct FieldDef {
     pub attrs: AttrVec,
     pub id: NodeId,
     pub span: Span,
     pub vis: Visibility,
+    pub unsafety: Unsafe,
     pub ident: Option<Ident>,
 
     pub ty: P<Ty>,
