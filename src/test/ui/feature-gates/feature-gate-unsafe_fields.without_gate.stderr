@@ -1,0 +1,43 @@
+error[E0658]: `unsafe` fields are experimental
+  --> $DIR/feature-gate-unsafe_fields.rs:8:5
+   |
+LL |     unsafe field: (),
+   |     ^^^^^^
+   |
+   = help: add `#![feature(unsafe_fields)]` to the crate attributes to enable
+
+error[E0658]: `unsafe` fields are experimental
+  --> $DIR/feature-gate-unsafe_fields.rs:11:17
+   |
+LL | struct FooTuple(unsafe ());
+   |                 ^^^^^^
+   |
+   = help: add `#![feature(unsafe_fields)]` to the crate attributes to enable
+
+error[E0658]: `unsafe` fields are experimental
+  --> $DIR/feature-gate-unsafe_fields.rs:14:15
+   |
+LL |     Variant { unsafe field: () },
+   |               ^^^^^^
+   |
+   = help: add `#![feature(unsafe_fields)]` to the crate attributes to enable
+
+error[E0658]: `unsafe` fields are experimental
+  --> $DIR/feature-gate-unsafe_fields.rs:15:18
+   |
+LL |     VariantTuple(unsafe ()),
+   |                  ^^^^^^
+   |
+   = help: add `#![feature(unsafe_fields)]` to the crate attributes to enable
+
+error[E0658]: `unsafe` fields are experimental
+  --> $DIR/feature-gate-unsafe_fields.rs:19:5
+   |
+LL |     unsafe field: (),
+   |     ^^^^^^
+   |
+   = help: add `#![feature(unsafe_fields)]` to the crate attributes to enable
+
+error: aborting due to 5 previous errors
+
+For more information about this error, try `rustc --explain E0658`.

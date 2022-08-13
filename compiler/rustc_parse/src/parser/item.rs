@@ -1527,6 +1527,9 @@ impl<'a> Parser<'a> {
                 let lo = p.token.span;
                 let vis = p.parse_visibility(FollowedByType::Yes)?;
                 let unsafety = p.parse_unsafety();
+                if let Unsafe::Yes(span) = unsafety {
+                    self.sess.gated_spans.gate(sym::unsafe_fields, span);
+                }
                 let ty = p.parse_ty()?;
 
                 Ok((
@@ -1554,6 +1557,9 @@ impl<'a> Parser<'a> {
             let lo = this.token.span;
             let vis = this.parse_visibility(FollowedByType::No)?;
             let unsafety = this.parse_unsafety();
+            if let Unsafe::Yes(span) = unsafety {
+                self.sess.gated_spans.gate(sym::unsafe_fields, span);
+            }
             Ok((
                 this.parse_single_struct_field(adt_ty, lo, vis, unsafety, attrs)?,
                 TrailingToken::None,
