@@ -27,18 +27,22 @@ struct MutOfRestrictedField {
     mut_span: Span,
     #[label]
     restriction_span: Span,
+    restriction_path: String,
 }
 
 #[derive(Diagnostic)]
-#[diag(restriction_construction_of_ty_with_mut_restricted_field)]
+#[diag(restrictions_construction_of_ty_with_mut_restricted_field)]
 struct ConstructionOfTyWithMutRestrictedField {
     #[primary_span]
     construction_span: Span,
     #[label]
     restriction_span: Span,
+    restriction_path: String,
     #[note]
     note: (),
-    ty: &'static str,
+    article: &'static str,
+    description: &'static str,
+    name: String,
 }
 
 fn mut_restriction(tcx: TyCtxt<'_>, def_id: LocalDefId) -> Restriction {
@@ -128,6 +132,9 @@ impl<'tcx> Visitor<'tcx> for MutRestrictionChecker<'_, 'tcx> {
                         self.tcx.sess.emit_err(MutOfRestrictedField {
                             mut_span: self.span,
                             restriction_span: field_def.mut_restriction.expect_span(),
+                            restriction_path: field_def
+                                .mut_restriction
+                                .expect_restriction_path(self.tcx, body_did.krate),
                         });
                     }
                 }
@@ -148,8 +155,12 @@ impl<'tcx> Visitor<'tcx> for MutRestrictionChecker<'_, 'tcx> {
                 self.tcx.sess.emit_err(ConstructionOfTyWithMutRestrictedField {
                     construction_span: self.span,
                     restriction_span: construction_restriction.expect_span(),
+                    restriction_path: construction_restriction
+                        .expect_restriction_path(self.tcx, body_did.krate),
                     note: (),
-                    ty: adt_def.variant_descr(),
+                    article: "a",
+                    description: adt_def.variant_descr(),
+                    name: variant.name.to_ident_string(),
                 });
             }
         }

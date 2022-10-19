@@ -18,6 +18,7 @@ struct ImplOfRestrictedTrait {
     impl_span: Span,
     #[label]
     restriction_span: Span,
+    restriction_path: String,
 }
 
 struct ImplOfRestrictedTraitVisitor<'tcx> {
@@ -40,6 +41,8 @@ impl<'v> Visitor<'v> for ImplOfRestrictedTraitVisitor<'v> {
                     self.tcx.sess.emit_err(ImplOfRestrictedTrait {
                         impl_span: self.tcx.span_of_impl(impl_).expect("impl should be local"),
                         restriction_span: restriction.expect_span(),
+                        restriction_path: restriction
+                            .expect_restriction_path(self.tcx, hir::def_id::LOCAL_CRATE),
                     });
                 }
             });
