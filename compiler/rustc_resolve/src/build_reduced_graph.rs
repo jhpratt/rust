@@ -343,10 +343,8 @@ impl<'a, 'b> BuildReducedGraphVisitor<'a, 'b> {
         let parent_scope = &self.parent_scope;
         match restriction.kind {
             // If the restriction is implied, it has no effect when the item is otherwise visible.
-            ast::RestrictionKind::Unrestricted | ast::RestrictionKind::Implied => {
-                Ok(ty::Restriction::Unrestricted)
-            }
-            ast::RestrictionKind::Restricted { ref path, id } => {
+            ast::RestrictionKind::Implied => Ok(ty::Restriction::Unrestricted),
+            ast::RestrictionKind::Restricted { ref path, id, shorthand: _ } => {
                 // For restrictions we are not ready to provide correct implementation of "uniform
                 // paths" right now, so on 2018 edition we only allow module-relative paths for now.
                 // On 2015 edition visibilities are resolved as crate-relative by default,
@@ -805,7 +803,7 @@ impl<'a, 'b> BuildReducedGraphVisitor<'a, 'b> {
                 self.r.define(parent, ident, TypeNS, (res, vis, sp, expansion));
             }
 
-            ItemKind::Enum(ref enum_def, _) => {
+            ItemKind::Enum(..) => {
                 let module = self.r.new_module(
                     Some(parent),
                     ModuleKind::Def(DefKind::Enum, def_id, ident.name),
@@ -815,14 +813,6 @@ impl<'a, 'b> BuildReducedGraphVisitor<'a, 'b> {
                 );
                 self.r.define(parent, ident, TypeNS, (module, vis, sp, expansion));
                 self.parent_scope.module = module;
-
-                for variant in &enum_def.variants {
-                    for field in variant.data.fields() {
-                        let local_did = self.r.local_def_id(field.id);
-                        let mut_restriction = self.resolve_restriction(&field.mut_restriction);
-                        self.r.mut_restrictions.insert(local_did, mut_restriction);
-                    }
-                }
             }
 
             ItemKind::TraitAlias(..) => {
@@ -838,13 +828,6 @@ impl<'a, 'b> BuildReducedGraphVisitor<'a, 'b> {
 
                 // Record field names for error reporting.
                 self.insert_field_names_local(def_id, vdata);
-
-                for field in vdata.fields() {
-                    if let Some(local_did) = self.r.opt_local_def_id(field.id) {
-                        let mut_restriction = self.resolve_restriction(&field.mut_restriction);
-                        self.r.mut_restrictions.insert(local_did, mut_restriction);
-                    }
-                }
 
                 // If this is a tuple or unit struct, define a name
                 // in the value namespace as well.
@@ -897,7 +880,7 @@ impl<'a, 'b> BuildReducedGraphVisitor<'a, 'b> {
 
             ItemKind::Trait(ref trait_def) => {
                 let impl_restriction = self.resolve_restriction(&trait_def.impl_restriction);
-                self.r.impl_restrictions.insert(local_def_id, impl_restriction);
+                self.r.impl_restrictions.insert(def_id, impl_restriction);
 
                 // Add all the items within to a new module.
                 let module = self.r.new_module(
@@ -1580,6 +1563,8 @@ impl<'a, 'b> Visitor<'b> for BuildReducedGraphVisitor<'a, 'b> {
         } else {
             let vis = self.resolve_visibility(&sf.vis);
             self.r.visibilities.insert(self.r.local_def_id(sf.id), vis);
+            let mut_restriction = self.resolve_restriction(&sf.mut_restriction);
+            self.r.mut_restrictions.insert(self.r.local_def_id(sf.id), mut_restriction);
             visit::walk_field_def(self, sf);
         }
     }

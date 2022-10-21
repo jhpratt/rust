@@ -1656,8 +1656,8 @@ rustc_queries! {
         separate_provide_extern
     }
 
-    query impl_restriction(def_id: LocalDefId) -> ty::Restriction {
-        desc { |tcx| "computing impl restriction for `{}`", tcx.def_path_str(def_id.to_def_id()) }
+    query impl_restriction(def_id: DefId) -> ty::Restriction {
+        desc { |tcx| "computing impl restriction for `{}`", tcx.def_path_str(def_id) }
     }
 
     query check_impl_restriction(_: ()) {

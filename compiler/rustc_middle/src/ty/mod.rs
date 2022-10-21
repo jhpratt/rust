@@ -161,7 +161,7 @@ pub struct ResolverOutputs {
 #[derive(Debug)]
 pub struct ResolverGlobalCtxt {
     pub visibilities: FxHashMap<LocalDefId, Visibility>,
-    pub impl_restrictions: FxHashMap<LocalDefId, Restriction>,
+    pub impl_restrictions: FxHashMap<DefId, Restriction>,
     pub mut_restrictions: FxHashMap<LocalDefId, Restriction>,
     /// This field is used to decide whether we should make `PRIVATE_IN_PUBLIC` a hard error.
     pub has_pub_restricted: bool,
@@ -302,12 +302,12 @@ impl<Id: Into<DefId> + Copy> Restriction<Id> {
     /// Returns `true` if this restriction applies in the given module. This
     /// means the behavior is _not_ allowed.
     pub fn is_restricted_in(self, module: impl Into<DefId>, tree: impl DefIdTree) -> bool {
-        let restricted_to = match self {
+        match self {
             Restriction::Unrestricted => return false,
-            Restriction::Restricted(module, _) => module,
-        };
-
-        !tree.is_descendant_of(module.into(), restricted_to.into())
+            Restriction::Restricted(restricted_to, _) => {
+                !tree.is_descendant_of(module.into(), restricted_to.into())
+            }
+        }
     }
 
     /// Obtain the [`Span`] of the restriction. Panics if the restriction is unrestricted.
@@ -332,7 +332,7 @@ impl<Id: Into<DefId> + Copy> Restriction<Id> {
         if krate == def_id.krate {
             tcx.def_path_str(def_id)
         } else {
-            tcx.crate_name(krate).to_ident_string()
+            tcx.crate_name(def_id.krate).to_ident_string()
         }
     }
 
