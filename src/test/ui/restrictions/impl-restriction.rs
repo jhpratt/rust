@@ -1,4 +1,3 @@
-// rustc-env:RUSTC_LOG=rustc_restrictions=info
 // compile-flags: --crate-type=lib
 // aux-build: external-impl-restriction.rs
 

@@ -234,6 +234,7 @@ provide! { tcx, def_id, other, cdata,
      }
 
     visibility => { cdata.get_visibility(def_id.index) }
+    impl_restriction => { table }
     adt_def => { cdata.get_adt_def(def_id.index, tcx) }
     adt_destructor => {
         let _ = cdata;
