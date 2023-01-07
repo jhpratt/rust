@@ -1564,7 +1564,7 @@ impl<'a, 'b> Visitor<'b> for BuildReducedGraphVisitor<'a, 'b> {
             let vis = self.resolve_visibility(&sf.vis);
             self.r.visibilities.insert(self.r.local_def_id(sf.id), vis);
             let mut_restriction = self.resolve_restriction(&sf.mut_restriction);
-            self.r.mut_restrictions.insert(self.r.local_def_id(sf.id), mut_restriction);
+            self.r.mut_restrictions.insert(self.r.local_def_id(sf.id).to_def_id(), mut_restriction);
             visit::walk_field_def(self, sf);
         }
     }

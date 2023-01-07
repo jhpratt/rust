@@ -45,26 +45,12 @@ struct ConstructionOfTyWithMutRestrictedField {
     name: String,
 }
 
-fn mut_restriction(tcx: TyCtxt<'_>, def_id: LocalDefId) -> Restriction {
+fn mut_restriction(tcx: TyCtxt<'_>, def_id: DefId) -> Restriction {
     tracing::debug!("mut_restriction({def_id:?})");
 
     match tcx.resolutions(()).mut_restrictions.get(&def_id) {
         Some(restriction) => *restriction,
-        None => {
-            let hir_id = tcx.local_def_id_to_hir_id(def_id);
-            match tcx.hir().get(hir_id) {
-                Node::Field(..) => {
-                    tracing::debug!("mut restriction not found; assuming unrestricted");
-                    Restriction::Unrestricted
-                }
-                _ => {
-                    span_bug!(
-                        tcx.def_span(def_id),
-                        "called `mut_restriction` on invalid item: {def_id:?}",
-                    )
-                }
-            }
-        }
+        None => span_bug!(tcx.def_span(def_id), "mut restriction not found for {def_id:?}"),
     }
 }
 
@@ -92,7 +78,10 @@ fn adt_expression_restriction(tcx: TyCtxt<'_>, variant_def_id: DefId) -> Restric
     let res = Res::Def(tcx.def_kind(variant_def_id), variant_def_id);
     let variant = tcx.expect_variant_res(res);
 
-    Restriction::strictest_of(variant.fields.iter().map(|field| field.mut_restriction), tcx)
+    Restriction::strictest_of(
+        variant.fields.iter().map(|field| tcx.mut_restriction(field.did)),
+        tcx,
+    )
 }
 
 struct MutRestrictionChecker<'a, 'tcx> {
@@ -128,13 +117,14 @@ impl<'tcx> Visitor<'tcx> for MutRestrictionChecker<'_, 'tcx> {
                         continue;
                     }
                     let field_def = field_ty.field_def(field);
+                    // let field_mut_restriction = field_def.mut_restriction(self.tcx);
+                    let field_mut_restriction = self.tcx.mut_restriction(field_def.did);
 
-                    if field_def.mut_restriction.is_restricted_in(body_did, self.tcx) {
+                    if field_mut_restriction.is_restricted_in(body_did, self.tcx) {
                         self.tcx.sess.emit_err(MutOfRestrictedField {
                             mut_span: self.span,
-                            restriction_span: field_def.mut_restriction.expect_span(),
-                            restriction_path: field_def
-                                .mut_restriction
+                            restriction_span: field_mut_restriction.expect_span(),
+                            restriction_path: field_mut_restriction
                                 .expect_restriction_path(self.tcx, body_did.krate),
                         });
                     }
