@@ -417,6 +417,8 @@ declare_features! (
     (active, half_open_range_patterns_in_slices, "1.66.0", Some(67264), None),
     /// Allows `if let` guard in match arms.
     (active, if_let_guard, "1.47.0", Some(51114), None),
+    /// `impl(in path)` on trait definitions
+    (active, impl_restriction, "CURRENT_RUSTC_VERSION", Some(105077), None),
     /// Allows `impl Trait` as output type in `Fn` traits in return position of functions.
     (active, impl_trait_in_fn_trait_return, "1.64.0", Some(99697), None),
     /// Allows referencing `Self` and projections in impl-trait.
@@ -451,6 +453,8 @@ declare_features! (
     (active, more_qualified_paths, "1.54.0", Some(86935), None),
     /// Allows the `#[must_not_suspend]` attribute.
     (active, must_not_suspend, "1.57.0", Some(83310), None),
+    /// `mut(in path)` on field definitions
+    (active, mut_restriction, "CURRENT_RUSTC_VERSION", Some(105077), None),
     /// Allows using `#[naked]` on functions.
     (active, naked_functions, "1.9.0", Some(32408), None),
     /// Allows specifying the as-needed link modifier

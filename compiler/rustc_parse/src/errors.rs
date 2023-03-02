@@ -811,6 +811,31 @@ pub(crate) struct IncorrectVisibilityRestriction {
 }
 
 #[derive(Diagnostic)]
+#[diag(parse_incorrect_restriction, code = "E0704")]
+#[help]
+pub(crate) struct IncorrectRestriction {
+    #[primary_span]
+    #[suggestion(code = "in {path}", applicability = "machine-applicable")]
+    pub span: Span,
+    pub path: String,
+    pub noun: &'static str,
+    pub adjective: &'static str,
+    pub keyword: &'static str,
+}
+
+#[derive(Diagnostic)]
+#[diag(parse_restriction_missing_path, code = "E0704")]
+#[help]
+pub(crate) struct RestrictionMissingPath {
+    #[primary_span]
+    #[suggestion(code = "{keyword}(crate)", applicability = "maybe-incorrect")]
+    pub span: Span,
+    pub noun: &'static str,
+    pub adjective: &'static str,
+    pub keyword: &'static str,
+}
+
+#[derive(Diagnostic)]
 #[diag(parse_assignment_else_not_allowed)]
 pub(crate) struct AssignmentElseNotAllowed {
     #[primary_span]
@@ -1485,6 +1510,14 @@ pub(crate) struct ExpectedTraitInTraitImplFoundType {
 #[diag(parse_bounds_not_allowed_on_trait_aliases)]
 pub(crate) struct BoundsNotAllowedOnTraitAliases {
     #[primary_span]
+    pub span: Span,
+}
+
+#[derive(Diagnostic)]
+#[diag(parse_trait_alias_cannot_be_implemented)]
+pub(crate) struct TraitAliasCannotBeImplemented {
+    #[primary_span]
+    #[label(parse_trait_alias_cannot_be_implemented)]
     pub span: Span,
 }
 

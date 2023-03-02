@@ -272,6 +272,20 @@ parse_incorrect_visibility_restriction = incorrect visibility restriction
             `pub(in path::to::module)`: visible only on the specified path
     .suggestion = make this visible only to module `{$inner_str}` with `in`
 
+parse_incorrect_restriction = incorrect {$noun} restriction
+    .help = some possible {$noun} restrictions are:
+            `{$keyword}(crate)`: {$adjective} only in the current crate
+            `{$keyword}(super)`: {$adjective} only in the current module's parent
+            `{$keyword}(in path::to::module)`: {$adjective} only in the specified path
+    .suggestion = make this {$adjective} only to module `{$path}` with `in`
+
+parse_restriction_missing_path = incorrect {$noun} restriction
+    .help = some possible {$noun} restrictions are:
+            `{$keyword}(crate)`: {$adjective} only in the current crate
+            `{$keyword}(super)`: {$adjective} only in the current module's parent
+            `{$keyword}(in path::to::module)`: {$adjective} only in the specified path
+    .suggestion = make this {$adjective} only to the current crate
+
 parse_assignment_else_not_allowed = <assignment> ... else {"{"} ... {"}"} is not allowed
 
 parse_expected_statement_after_outer_attr = expected statement after outer attribute
@@ -474,6 +488,7 @@ parse_non_item_in_item_list = non-item in item list
 
 parse_bounds_not_allowed_on_trait_aliases = bounds are not allowed on trait aliases
 
+parse_trait_alias_cannot_be_implemented = trait aliases cannot be implemented
 parse_trait_alias_cannot_be_auto = trait aliases cannot be `auto`
 parse_trait_alias_cannot_be_unsafe = trait aliases cannot be `unsafe`
 
