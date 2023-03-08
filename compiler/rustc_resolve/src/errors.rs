@@ -449,11 +449,16 @@ pub(crate) struct Relative2018 {
     #[suggestion(code = "crate::{path_str}", applicability = "maybe-incorrect")]
     pub(crate) path_span: Span,
     pub(crate) path_str: String,
+    pub(crate) kind: &'static str,
 }
 
 #[derive(Diagnostic)]
 #[diag(resolve_ancestor_only, code = "E0742")]
-pub(crate) struct AncestorOnly(#[primary_span] pub(crate) Span);
+pub(crate) struct AncestorOnly {
+    #[primary_span]
+    pub(crate) span: Span,
+    pub(crate) kind: &'static str,
+}
 
 #[derive(Diagnostic)]
 #[diag(resolve_expected_found, code = "E0577")]
@@ -467,8 +472,16 @@ pub(crate) struct ExpectedFound {
 
 #[derive(Diagnostic)]
 #[diag(resolve_indeterminate, code = "E0578")]
-pub(crate) struct Indeterminate(#[primary_span] pub(crate) Span);
+pub(crate) struct Indeterminate {
+    #[primary_span]
+    pub(crate) span: Span,
+    pub(crate) kind: &'static str,
+}
 
 #[derive(Diagnostic)]
 #[diag(resolve_module_only)]
-pub(crate) struct ModuleOnly(#[primary_span] pub(crate) Span);
+pub(crate) struct ModuleOnly {
+    #[primary_span]
+    pub(crate) span: Span,
+    pub(crate) kind: &'static str,
+}

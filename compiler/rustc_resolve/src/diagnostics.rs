@@ -34,7 +34,10 @@ use crate::late::{PatternSource, Rib};
 use crate::path_names_to_string;
 use crate::{AmbiguityError, AmbiguityErrorMisc, AmbiguityKind, BindingError, Finalize};
 use crate::{HasGenericParams, MacroRulesScope, Module, ModuleKind, ModuleOrUniformRoot};
-use crate::{LexicalScopeBinding, NameBinding, NameBindingKind, PrivacyError, VisResolutionError};
+use crate::{
+    LexicalScopeBinding, NameBinding, NameBindingKind, PrivacyError, RestrictionResolutionError,
+    VisResolutionError,
+};
 use crate::{ParentScope, PathResult, ResolutionError, Resolver, Scope, ScopeSet};
 use crate::{Segment, UseError};
 
@@ -963,10 +966,11 @@ impl<'a, 'tcx> Resolver<'a, 'tcx> {
                     // intentionally converting to String, as the text would also be used as
                     // in suggestion context
                     path_str: pprust::path_to_string(&path),
+                    kind: "visibilities",
                 })
             }
             VisResolutionError::AncestorOnly(span) => {
-                self.tcx.sess.create_err(errs::AncestorOnly(span))
+                self.tcx.sess.create_err(errs::AncestorOnly { span, kind: "visibilities" })
             }
             VisResolutionError::FailedToResolve(span, label, suggestion) => {
                 self.into_struct_error(span, ResolutionError::FailedToResolve { label, suggestion })
@@ -975,10 +979,44 @@ impl<'a, 'tcx> Resolver<'a, 'tcx> {
                 self.tcx.sess.create_err(errs::ExpectedFound { span, res, path_str })
             }
             VisResolutionError::Indeterminate(span) => {
-                self.tcx.sess.create_err(errs::Indeterminate(span))
+                self.tcx.sess.create_err(errs::Indeterminate { span, kind: "visibility" })
             }
             VisResolutionError::ModuleOnly(span) => {
-                self.tcx.sess.create_err(errs::ModuleOnly(span))
+                self.tcx.sess.create_err(errs::ModuleOnly { span, kind: "visibility" })
+            }
+        }
+        .emit()
+    }
+
+    pub(crate) fn report_restriction_error(
+        &mut self,
+        vis_resolution_error: RestrictionResolutionError<'_>,
+    ) -> ErrorGuaranteed {
+        match vis_resolution_error {
+            RestrictionResolutionError::Relative2018(span, path) => {
+                self.tcx.sess.create_err(errs::Relative2018 {
+                    span,
+                    path_span: path.span,
+                    // intentionally converting to String, as the text would also be used as
+                    // in suggestion context
+                    path_str: pprust::path_to_string(&path),
+                    kind: "restrictions",
+                })
+            }
+            RestrictionResolutionError::AncestorOnly(span) => {
+                self.tcx.sess.create_err(errs::AncestorOnly { span, kind: "restrictions" })
+            }
+            RestrictionResolutionError::FailedToResolve(span, label, suggestion) => {
+                self.into_struct_error(span, ResolutionError::FailedToResolve { label, suggestion })
+            }
+            RestrictionResolutionError::ExpectedFound(span, path_str, res) => {
+                self.tcx.sess.create_err(errs::ExpectedFound { span, res, path_str })
+            }
+            RestrictionResolutionError::Indeterminate(span) => {
+                self.tcx.sess.create_err(errs::Indeterminate { span, kind: "restriction" })
+            }
+            RestrictionResolutionError::ModuleOnly(span) => {
+                self.tcx.sess.create_err(errs::ModuleOnly { span, kind: "restriction" })
             }
         }
         .emit()

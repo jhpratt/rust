@@ -194,18 +194,18 @@ resolve_trait_impl_duplicate =
     .trait_item_span = item in trait
 
 resolve_relative_2018 =
-    relative paths are not supported in visibilities in 2018 edition or later
+    relative paths are not supported in {$kind} in 2018 edition or later
     .suggestion = try
 
 resolve_ancestor_only =
-    visibilities can only be restricted to ancestor modules
+    {$kind} can only be restricted to ancestor modules
 
 resolve_expected_found =
     expected module, found {$res} `{$path_str}`
     .label = not a module
 
 resolve_indeterminate =
-    cannot determine resolution for the visibility
+    cannot determine resolution for the {$kind}
 
 resolve_module_only =
-    visibility must resolve to a module
+    {$kind} must resolve to a module
