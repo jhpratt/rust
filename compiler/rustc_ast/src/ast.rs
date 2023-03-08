@@ -2720,6 +2720,14 @@ pub mod restriction_kind {
     }
 
     restriction! {
+        requires_explicit_path: false,
+        name: Visibility,
+        keyword: kw::Pub => "pub",
+        adjective: "visible",
+        noun: "visibility",
+        feature_gate: None,
+    }
+    restriction! {
         requires_explicit_path: true,
         name: Impl,
         keyword: kw::Impl => "impl",
@@ -2755,6 +2763,28 @@ pub enum RestrictionLevel {
     Restricted { path: P<Path>, id: NodeId, shorthand: bool },
     // nothing
     Implied,
+}
+
+impl From<Restriction<restriction_kind::Visibility>> for Visibility {
+    fn from(restriction: Restriction<restriction_kind::Visibility>) -> Self {
+        match restriction.level {
+            RestrictionLevel::Unrestricted => Self {
+                kind: VisibilityKind::Public,
+                span: restriction.span,
+                tokens: restriction.tokens,
+            },
+            RestrictionLevel::Restricted { path, id, shorthand } => Self {
+                kind: VisibilityKind::Restricted { path, id, shorthand },
+                span: restriction.span,
+                tokens: restriction.tokens,
+            },
+            RestrictionLevel::Implied => Self {
+                kind: VisibilityKind::Inherited,
+                span: restriction.span,
+                tokens: restriction.tokens,
+            },
+        }
+    }
 }
 
 impl<Kind: RestrictionKind> Restriction<Kind> {

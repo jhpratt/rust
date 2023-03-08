@@ -265,13 +265,6 @@ parse_mismatched_closing_delimiter = mismatched closing delimiter: `{$delimiter}
     .label_opening_candidate = closing delimiter possibly meant for this
     .label_unclosed = unclosed delimiter
 
-parse_incorrect_visibility_restriction = incorrect visibility restriction
-    .help = some possible visibility restrictions are:
-            `pub(crate)`: visible only on the current crate
-            `pub(super)`: visible only in the current module's parent
-            `pub(in path::to::module)`: visible only on the specified path
-    .suggestion = make this visible only to module `{$inner_str}` with `in`
-
 parse_incorrect_restriction = incorrect {$noun} restriction
     .help = some possible {$noun} restrictions are:
             `{$keyword}(crate)`: {$adjective} only in the current crate

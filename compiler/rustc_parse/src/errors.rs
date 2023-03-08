@@ -801,16 +801,6 @@ pub(crate) struct MismatchedClosingDelimiter {
 }
 
 #[derive(Diagnostic)]
-#[diag(parse_incorrect_visibility_restriction, code = "E0704")]
-#[help]
-pub(crate) struct IncorrectVisibilityRestriction {
-    #[primary_span]
-    #[suggestion(code = "in {inner_str}", applicability = "machine-applicable")]
-    pub span: Span,
-    pub inner_str: String,
-}
-
-#[derive(Diagnostic)]
 #[diag(parse_incorrect_restriction, code = "E0704")]
 #[help]
 pub(crate) struct IncorrectRestriction {

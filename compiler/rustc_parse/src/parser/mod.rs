@@ -26,9 +26,7 @@ use rustc_ast::AttrId;
 use rustc_ast::DUMMY_NODE_ID;
 use rustc_ast::{self as ast, AnonConst, AttrStyle, Const, DelimArgs, Extern};
 use rustc_ast::{Async, AttrArgs, AttrArgsEq, Expr, ExprKind, MacDelimiter, Mutability, StrLit};
-use rustc_ast::{
-    HasAttrs, HasTokens, Restriction, RestrictionKind, Unsafe, Visibility, VisibilityKind,
-};
+use rustc_ast::{HasAttrs, HasTokens, Restriction, RestrictionKind, Unsafe, Visibility};
 use rustc_ast_pretty::pprust;
 use rustc_data_structures::fx::FxHashMap;
 use rustc_errors::PResult;
@@ -44,8 +42,8 @@ use thin_vec::ThinVec;
 use tracing::debug;
 
 use crate::errors::{
-    DocCommentDoesNotDocumentAnything, IncorrectRestriction, IncorrectVisibilityRestriction,
-    MismatchedClosingDelimiter, NonStringAbiLiteral, RestrictionMissingPath,
+    DocCommentDoesNotDocumentAnything, IncorrectRestriction, MismatchedClosingDelimiter,
+    NonStringAbiLiteral, RestrictionMissingPath,
 };
 
 bitflags::bitflags! {
@@ -1378,78 +1376,7 @@ impl<'a> Parser<'a> {
     // Public for rustfmt usage.
     pub fn parse_visibility(&mut self, fbt: FollowedByType) -> PResult<'a, Visibility> {
         maybe_whole!(self, NtVis, |x| x.into_inner());
-
-        if !self.eat_keyword(kw::Pub) {
-            // We need a span for our `Spanned<VisibilityKind>`, but there's inherently no
-            // keyword to grab a span from for inherited visibility; an empty span at the
-            // beginning of the current token would seem to be the "Schelling span".
-            return Ok(Visibility {
-                span: self.token.span.shrink_to_lo(),
-                kind: VisibilityKind::Inherited,
-                tokens: None,
-            });
-        }
-        let lo = self.prev_token.span;
-
-        if self.check(&token::OpenDelim(Delimiter::Parenthesis)) {
-            // We don't `self.bump()` the `(` yet because this might be a struct definition where
-            // `()` or a tuple might be allowed. For example, `struct Struct(pub (), pub (usize));`.
-            // Because of this, we only `bump` the `(` if we're assured it is appropriate to do so
-            // by the following tokens.
-            if self.is_keyword_ahead(1, &[kw::In]) {
-                // Parse `pub(in path)`.
-                self.bump(); // `(`
-                self.bump(); // `in`
-                let path = self.parse_path(PathStyle::Mod)?; // `path`
-                self.expect(&token::CloseDelim(Delimiter::Parenthesis))?; // `)`
-                let vis = VisibilityKind::Restricted {
-                    path: P(path),
-                    id: ast::DUMMY_NODE_ID,
-                    shorthand: false,
-                };
-                return Ok(Visibility {
-                    span: lo.to(self.prev_token.span),
-                    kind: vis,
-                    tokens: None,
-                });
-            } else if self.look_ahead(2, |t| t == &token::CloseDelim(Delimiter::Parenthesis))
-                && self.is_keyword_ahead(1, &[kw::Crate, kw::Super, kw::SelfLower])
-            {
-                // Parse `pub(crate)`, `pub(self)`, or `pub(super)`.
-                self.bump(); // `(`
-                let path = self.parse_path(PathStyle::Mod)?; // `crate`/`super`/`self`
-                self.expect(&token::CloseDelim(Delimiter::Parenthesis))?; // `)`
-                let vis = VisibilityKind::Restricted {
-                    path: P(path),
-                    id: ast::DUMMY_NODE_ID,
-                    shorthand: true,
-                };
-                return Ok(Visibility {
-                    span: lo.to(self.prev_token.span),
-                    kind: vis,
-                    tokens: None,
-                });
-            } else if let FollowedByType::No = fbt {
-                // Provide this diagnostic if a type cannot follow;
-                // in particular, if this is not a tuple struct.
-                self.recover_incorrect_vis_restriction()?;
-                // Emit diagnostic, but continue with public visibility.
-            }
-        }
-
-        Ok(Visibility { span: lo, kind: VisibilityKind::Public, tokens: None })
-    }
-
-    /// Recovery for e.g. `pub(something) fn ...` or `struct X { pub(something) y: Z }`
-    fn recover_incorrect_vis_restriction(&mut self) -> PResult<'a, ()> {
-        self.bump(); // `(`
-        let path = self.parse_path(PathStyle::Mod)?;
-        self.expect(&token::CloseDelim(Delimiter::Parenthesis))?; // `)`
-
-        let path_str = pprust::path_to_string(&path);
-        self.sess.emit_err(IncorrectVisibilityRestriction { span: path.span, inner_str: path_str });
-
-        Ok(())
+        self.parse_restriction(fbt).map(Into::into)
     }
 
     /// Parses `kw`, `kw(in path)`, and shortcuts `kw(crate)` for `kw(in crate)`, `kw(self)` for
