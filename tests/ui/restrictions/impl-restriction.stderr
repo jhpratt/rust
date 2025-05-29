@@ -1,0 +1,14 @@
+error: implementation of restricted trait
+  --> $DIR/impl-restriction.rs:13:1
+   |
+LL | impl foo::bar::Foo for u8 {}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: trait restricted here
+  --> $DIR/impl-restriction.rs:7:20
+   |
+LL |         pub(crate) impl(super) trait Foo {}
+   |                    ^^^^^^^^^^^
+
+error: aborting due to 1 previous error
+

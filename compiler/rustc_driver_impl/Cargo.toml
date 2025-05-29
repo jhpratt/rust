@@ -43,6 +43,7 @@ rustc_pattern_analysis = { path = "../rustc_pattern_analysis" }
 rustc_privacy = { path = "../rustc_privacy" }
 rustc_query_system = { path = "../rustc_query_system" }
 rustc_resolve = { path = "../rustc_resolve" }
+rustc_restrictions = { path = "../rustc_restrictions" }
 rustc_session = { path = "../rustc_session" }
 rustc_span = { path = "../rustc_span" }
 rustc_target = { path = "../rustc_target" }

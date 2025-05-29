@@ -340,7 +340,7 @@ impl Restriction {
             Restriction::Restricted(module, _) => module,
         };
 
-        tcx.is_descendant_of(module, restricted_to.into())
+        tcx.is_descendant_of(module, restricted_to)
     }
 
     /// Obtain the [`Span`] of the restriction. If unrestricted, an empty span is returned.
