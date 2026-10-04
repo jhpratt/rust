@@ -1,11 +1,11 @@
 warning: unused import: `unused::Unannotated`
-  --> $DIR/attribute-in-use-tree-rustfix.rs:14:5
+  --> $DIR/attribute-in-use-tree-rustfix.rs:15:5
    |
 LL |     unused::Unannotated,
    |     ^^^^^^^^^^^^^^^^^^^
    |
 note: the lint level is defined here
-  --> $DIR/attribute-in-use-tree-rustfix.rs:4:9
+  --> $DIR/attribute-in-use-tree-rustfix.rs:5:9
    |
 LL | #![warn(unused_imports)]
    |         ^^^^^^^^^^^^^^

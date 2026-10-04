@@ -1,5 +1,6 @@
 //@ check-pass
 
+#![feature(use_tree_attributes)]
 #![allow(unused_imports)]
 
 use foo::{

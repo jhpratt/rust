@@ -1,3 +1,5 @@
+#![feature(use_tree_attributes)]
+
 mod inner {
     pub struct Item;
 }

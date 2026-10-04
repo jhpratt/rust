@@ -2345,6 +2345,7 @@ symbols! {
         use_cloned,
         use_extern_macros,
         use_nested_groups,
+        use_tree_attributes,
         used,
         used_with_arg,
         using,

@@ -1,4 +1,5 @@
 #![crate_name = "use_tree_attributes"]
+#![feature(use_tree_attributes)]
 
 mod source {
     pub struct Hidden;

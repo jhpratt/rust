@@ -769,6 +769,8 @@ declare_features! (
     (incomplete, unsized_const_params, "1.82.0", Some(95174)),
     /// Allows unsized fn parameters.
     (internal, unsized_fn_params, "1.49.0", Some(48055)),
+    /// Allows attributes on entries inside use trees.
+    (unstable, use_tree_attributes, "CURRENT_RUSTC_VERSION", Some(141704)),
     /// Allows using the `#[used(linker)]` (or `#[used(compiler)]`) attribute.
     (unstable, used_with_arg, "1.60.0", Some(93798)),
     /// Allows view types.

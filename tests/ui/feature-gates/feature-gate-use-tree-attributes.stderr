@@ -1,0 +1,13 @@
+error[E0658]: attributes on use tree entries are unstable
+  --> $DIR/feature-gate-use-tree-attributes.rs:7:14
+   |
+LL | use source::{#[allow(unused_imports)] Item};
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: see issue #141704 <https://github.com/rust-lang/rust/issues/141704> for more information
+   = help: add `#![feature(use_tree_attributes)]` to the crate attributes to enable
+   = note: this compiler was built on YYYY-MM-DD; consider upgrading it if it is out of date
+
+error: aborting due to 1 previous error
+
+For more information about this error, try `rustc --explain E0658`.

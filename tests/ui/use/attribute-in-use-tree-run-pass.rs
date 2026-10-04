@@ -1,5 +1,6 @@
 //@ check-pass
 
+#![feature(use_tree_attributes)]
 #![deny(unused_imports)]
 #![allow(dead_code)]
 

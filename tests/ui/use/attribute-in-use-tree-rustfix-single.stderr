@@ -1,11 +1,11 @@
 warning: unused import: `Unused`
-  --> $DIR/attribute-in-use-tree-rustfix-single.rs:15:5
+  --> $DIR/attribute-in-use-tree-rustfix-single.rs:17:5
    |
 LL |     Unused,
    |     ^^^^^^
    |
 note: the lint level is defined here
-  --> $DIR/attribute-in-use-tree-rustfix-single.rs:14:12
+  --> $DIR/attribute-in-use-tree-rustfix-single.rs:16:12
    |
 LL |     #[warn(unused_imports)]
    |            ^^^^^^^^^^^^^^

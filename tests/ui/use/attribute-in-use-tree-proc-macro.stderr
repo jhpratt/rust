@@ -1,5 +1,5 @@
 error: only cfg, lint, stability, and doc attributes are allowed on use tree entries
-  --> $DIR/attribute-in-use-tree-proc-macro.rs:12:5
+  --> $DIR/attribute-in-use-tree-proc-macro.rs:14:5
    |
 LL |     #[marker_attr] inner::Item,
    |     ^^^^^^^^^^^^^^

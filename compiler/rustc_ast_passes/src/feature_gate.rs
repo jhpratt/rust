@@ -466,6 +466,7 @@ pub fn check_crate(krate: &ast::Crate, sess: &Session, features: &Features) {
     gate_all!(unnamed_enum_variants, "unnamed enum variants are experimental");
     gate_all!(unsafe_binders, "unsafe binder types are experimental");
     gate_all!(unsafe_fields, "`unsafe` fields are experimental");
+    gate_all!(use_tree_attributes, "attributes on use tree entries are unstable");
     gate_all!(view_types, "view types are experimental");
     gate_all!(where_clause_attrs, "attributes in `where` clause are unstable");
     gate_all!(yeet_expr, "`do yeet` expression is experimental");

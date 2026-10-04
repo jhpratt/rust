@@ -1396,7 +1396,11 @@ impl<'a> Parser<'a> {
         self.parse_delim_comma_seq(exp!(OpenBrace), exp!(CloseBrace), |p| {
             p.recover_vcs_conflict_marker();
 
+            let attrs_lo = p.token.span;
             let attrs = p.parse_outer_attributes()?;
+            if !attrs.is_empty() {
+                p.psess.gated_spans.gate(sym::use_tree_attributes, attrs_lo.to(p.prev_token.span));
+            }
             p.collect_tokens(None, attrs, ForceCollect::No, |p, attrs| {
                 let use_tree = p.parse_use_tree(use_token_span)?;
                 Ok((

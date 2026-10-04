@@ -1,11 +1,11 @@
 error: unused import: `unused::Denied`
-  --> $DIR/attribute-in-use-tree-lint-levels.rs:15:5
+  --> $DIR/attribute-in-use-tree-lint-levels.rs:16:5
    |
 LL |     unused::Denied,
    |     ^^^^^^^^^^^^^^
    |
 note: the lint level is defined here
-  --> $DIR/attribute-in-use-tree-lint-levels.rs:1:9
+  --> $DIR/attribute-in-use-tree-lint-levels.rs:2:9
    |
 LL | #![deny(unused_imports)]
    |         ^^^^^^^^^^^^^^

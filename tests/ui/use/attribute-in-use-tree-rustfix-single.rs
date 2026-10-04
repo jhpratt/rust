@@ -1,7 +1,9 @@
 //@ run-rustfix
 //@ check-pass
 
+#![feature(use_tree_attributes)]
 #![allow(dead_code)]
+#![allow(unused_features)]
 #![warn(unused_imports)]
 
 mod source {

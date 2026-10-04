@@ -1,5 +1,7 @@
 //@ proc-macro: attribute-in-use-tree-macro.rs
 
+#![feature(use_tree_attributes)]
+
 extern crate attribute_in_use_tree_macro;
 
 mod inner {
