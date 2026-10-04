@@ -35,7 +35,7 @@ use rustc_hir::def_id::LocalDefId;
 use rustc_lint_defs::builtin::{
     MACRO_USE_EXTERN_CRATE, UNUSED_EXTERN_CRATES, UNUSED_IMPORTS, UNUSED_QUALIFICATIONS,
 };
-use rustc_span::{DUMMY_SP, Ident, Span, kw};
+use rustc_span::{DUMMY_SP, Ident, Span, kw, sym};
 
 use crate::imports::{Import, ImportKind};
 use crate::{DeclKind, IdentKey, LateDecl, Resolver, diagnostics, module_to_string, with_owner};
@@ -484,85 +484,143 @@ impl Resolver<'_, '_> {
         visitor.report_unused_extern_crate_items(maybe_unused_extern_crates);
 
         for unused in visitor.unused_imports.values() {
-            let (spans, remove_spans) =
-                match calc_unused_spans(unused, &unused.use_tree, unused.use_tree_id) {
-                    UnusedSpanResult::Used => continue,
-                    UnusedSpanResult::Unused { spans, remove } => (spans, vec![remove]),
-                    UnusedSpanResult::PartialUnused { spans, remove } => (spans, remove),
+            fn has_nested_lint_attrs(tree: &ast::UseTree) -> bool {
+                match &tree.kind {
+                    ast::UseTreeKind::Nested { items, .. } => items.iter().any(|item| {
+                        item.attrs.iter().any(|attr| {
+                            attr.has_any_name(&[
+                                sym::allow,
+                                sym::expect,
+                                sym::warn,
+                                sym::deny,
+                                sym::forbid,
+                            ])
+                        }) || has_nested_lint_attrs(&item.inner)
+                    }),
+                    _ => false,
+                }
+            }
+
+            let split_reports = has_nested_lint_attrs(&unused.use_tree);
+            let reports: Vec<_> = if split_reports {
+                unused
+                    .unused
+                    .items()
+                    .map(|id| id.as_u32())
+                    .into_sorted_stable_ord()
+                    .into_iter()
+                    .map(ast::NodeId::from_u32)
+                    .map(|id| {
+                        (
+                            UnusedImport {
+                                use_tree: unused.use_tree.clone(),
+                                use_tree_id: unused.use_tree_id,
+                                item_span: unused.item_span,
+                                unused: [id].into_iter().collect(),
+                                use_tree_def_id: unused.use_tree_def_id,
+                            },
+                            id,
+                        )
+                    })
+                    .collect()
+            } else {
+                vec![(
+                    UnusedImport {
+                        use_tree: unused.use_tree.clone(),
+                        use_tree_id: unused.use_tree_id,
+                        item_span: unused.item_span,
+                        unused: unused.unused.clone(),
+                        use_tree_def_id: unused.use_tree_def_id,
+                    },
+                    unused.use_tree_id,
+                )]
+            };
+            let allow_rustfix = reports.len() == 1;
+
+            for (unused, lint_node_id) in reports {
+                let (spans, remove_spans) =
+                    match calc_unused_spans(&unused, &unused.use_tree, unused.use_tree_id) {
+                        UnusedSpanResult::Used => continue,
+                        UnusedSpanResult::Unused { spans, remove } => (spans, vec![remove]),
+                        UnusedSpanResult::PartialUnused { spans, remove } => (spans, remove),
+                    };
+
+                let ms = MultiSpan::from_spans(spans);
+
+                let mut span_snippets = ms
+                    .primary_spans()
+                    .iter()
+                    .filter_map(|span| tcx.sess.source_map().span_to_snippet(*span).ok())
+                    .map(|s| format!("`{s}`"))
+                    .collect::<Vec<String>>();
+                span_snippets.sort();
+
+                let remove_whole_use =
+                    remove_spans.len() == 1 && remove_spans[0] == unused.item_span;
+                let num_to_remove = ms.primary_spans().len();
+                // Only offer rustfix suggestions for spans that point at directly editable code.
+                let can_suggest_removal = allow_rustfix
+                    && remove_spans.iter().all(|span| span.can_be_used_for_suggestions());
+
+                // If we are in the `--test` mode, suppress a help that adds the `#[cfg(test)]`
+                // attribute; however, if not, suggest adding the attribute. There is no way to
+                // retrieve attributes here because we do not have a `TyCtxt` yet.
+                let test_module_span = if tcx.sess.is_test_crate() {
+                    None
+                } else {
+                    let parent_module =
+                        visitor.r.get_nearest_non_block_module(unused.use_tree_def_id.to_def_id());
+                    match module_to_string(parent_module) {
+                        Some(module)
+                            if module == "test"
+                                || module == "tests"
+                                || module.starts_with("test_")
+                                || module.starts_with("tests_")
+                                || module.ends_with("_test")
+                                || module.ends_with("_tests") =>
+                        {
+                            Some(parent_module.span)
+                        }
+                        _ => None,
+                    }
                 };
 
-            let ms = MultiSpan::from_spans(spans);
-
-            let mut span_snippets = ms
-                .primary_spans()
-                .iter()
-                .filter_map(|span| tcx.sess.source_map().span_to_snippet(*span).ok())
-                .map(|s| format!("`{s}`"))
-                .collect::<Vec<String>>();
-            span_snippets.sort();
-
-            let remove_whole_use = remove_spans.len() == 1 && remove_spans[0] == unused.item_span;
-            let num_to_remove = ms.primary_spans().len();
-            // Only offer rustfix suggestions for spans that point at directly editable code.
-            let can_suggest_removal =
-                remove_spans.iter().all(|span| span.can_be_used_for_suggestions());
-
-            // If we are in the `--test` mode, suppress a help that adds the `#[cfg(test)]`
-            // attribute; however, if not, suggest adding the attribute. There is no way to
-            // retrieve attributes here because we do not have a `TyCtxt` yet.
-            let test_module_span = if tcx.sess.is_test_crate() {
-                None
-            } else {
-                let parent_module =
-                    visitor.r.get_nearest_non_block_module(unused.use_tree_def_id.to_def_id());
-                match module_to_string(parent_module) {
-                    Some(module)
-                        if module == "test"
-                            || module == "tests"
-                            || module.starts_with("test_")
-                            || module.starts_with("tests_")
-                            || module.ends_with("_test")
-                            || module.ends_with("_tests") =>
-                    {
-                        Some(parent_module.span)
-                    }
-                    _ => None,
-                }
-            };
-
-            visitor.r.lint_buffer.dyn_buffer_lint_any(
-                UNUSED_IMPORTS,
-                unused.use_tree_id,
-                ms,
-                move |dcx, level, sess| {
-                    let sugg = can_suggest_removal.then(|| {
-                        if remove_whole_use {
-                            diagnostics::UnusedImportsSugg::RemoveWholeUse { span: remove_spans[0] }
-                        } else {
-                            diagnostics::UnusedImportsSugg::RemoveImports {
-                                remove_spans,
-                                num_to_remove,
+                visitor.r.lint_buffer.dyn_buffer_lint_any(
+                    UNUSED_IMPORTS,
+                    lint_node_id,
+                    ms,
+                    move |dcx, level, sess| {
+                        let sugg = can_suggest_removal.then(|| {
+                            if remove_whole_use {
+                                diagnostics::UnusedImportsSugg::RemoveWholeUse {
+                                    span: remove_spans[0],
+                                }
+                            } else {
+                                diagnostics::UnusedImportsSugg::RemoveImports {
+                                    remove_spans,
+                                    num_to_remove,
+                                }
                             }
-                        }
-                    });
-                    let test_module_span = test_module_span.map(|span| {
-                        sess.downcast_ref::<rustc_session::Session>()
-                            .expect("expected a `Session`")
-                            .source_map()
-                            .guess_head_span(span)
-                    });
+                        });
+                        let test_module_span = test_module_span.map(|span| {
+                            sess.downcast_ref::<rustc_session::Session>()
+                                .expect("expected a `Session`")
+                                .source_map()
+                                .guess_head_span(span)
+                        });
 
-                    diagnostics::UnusedImports {
-                        sugg,
-                        test_module_span,
-                        num_snippets: span_snippets.len(),
-                        span_snippets: DiagArgValue::StrListSepByAnd(
-                            span_snippets.into_iter().map(Cow::Owned).collect(),
-                        ),
-                    }
-                    .into_diag(dcx, level)
-                },
-            );
+                        diagnostics::UnusedImports {
+                            sugg,
+                            test_module_span,
+                            num_snippets: span_snippets.len(),
+                            span_snippets: DiagArgValue::StrListSepByAnd(
+                                span_snippets.into_iter().map(Cow::Owned).collect(),
+                            ),
+                        }
+                        .into_diag(dcx, level)
+                    },
+                );
+            }
         }
 
         let unused_imports = visitor.unused_imports;

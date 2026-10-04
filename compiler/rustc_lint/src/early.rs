@@ -130,6 +130,12 @@ impl<'ast, 'ecx, T: EarlyLintPass> ast_visit::Visitor<'ast> for EarlyContextAndP
         });
     }
 
+    fn visit_use_tree_and_id(&mut self, tree: &'ast ast::UseTreeAndId) {
+        self.with_lint_attrs(tree.id, &tree.attrs, |cx| {
+            ast_visit::walk_use_tree_and_id(cx, tree);
+        });
+    }
+
     fn visit_fn(&mut self, fk: ast_visit::FnKind<'ast>, _: &AttrVec, span: Span, id: ast::NodeId) {
         lint_callback!(self, check_fn, fk, span, id);
         ast_visit::walk_fn(self, fk);

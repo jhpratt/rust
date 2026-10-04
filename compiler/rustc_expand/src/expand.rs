@@ -2489,6 +2489,46 @@ impl<'a, 'b> InvocationCollector<'a, 'b> {
 }
 
 impl<'a, 'b> MutVisitor for InvocationCollector<'a, 'b> {
+    fn visit_use_tree(&mut self, tree: &mut ast::UseTree) {
+        if let ast::UseTreeKind::Nested { items, .. } = &mut tree.kind {
+            let cfg = self.cfg();
+            let mut stripped = Vec::new();
+            items.retain_mut(|use_tree| match cfg.configure_attrs(&mut use_tree.attrs) {
+                EvalConfigResult::True => true,
+                EvalConfigResult::False { reason } => {
+                    fn collect_use_tree_leaves(tree: &ast::UseTree, idents: &mut Vec<Ident>) {
+                        match &tree.kind {
+                            ast::UseTreeKind::Glob(_) => {}
+                            ast::UseTreeKind::Simple(_) => idents.push(tree.ident()),
+                            ast::UseTreeKind::Nested { items, .. } => {
+                                for item in items {
+                                    collect_use_tree_leaves(&item.inner, idents);
+                                }
+                            }
+                        }
+                    }
+
+                    let mut idents = Vec::new();
+                    collect_use_tree_leaves(&use_tree.inner, &mut idents);
+                    for ident in idents {
+                        stripped.push((ident, reason.clone(), reason.span()));
+                    }
+                    false
+                }
+            });
+            for (ident, reason, span) in stripped {
+                self.cx.resolver.append_stripped_cfg_item(
+                    self.cx.current_expansion.lint_node_id,
+                    ident,
+                    reason,
+                    span,
+                );
+            }
+        }
+
+        tree.walk_mut(self);
+    }
+
     fn flat_map_item(&mut self, node: Box<ast::Item>) -> SmallVec<[Box<ast::Item>; 1]> {
         self.flat_map_node(node)
     }

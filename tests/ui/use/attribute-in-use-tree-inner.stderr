@@ -1,0 +1,11 @@
+error: an inner attribute is not permitted in this context
+  --> $DIR/attribute-in-use-tree-inner.rs:5:13
+   |
+LL | use crate::{#![allow(unused_imports)] inner::Item};
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: inner attributes, like `#![no_std]`, annotate the item enclosing them, and are usually found at the beginning of source files
+   = note: outer attributes, like `#[test]`, annotate the item following them
+
+error: aborting due to 1 previous error
+

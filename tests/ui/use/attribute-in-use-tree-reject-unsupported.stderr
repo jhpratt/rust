@@ -1,0 +1,16 @@
+error: only cfg, lint, stability, and doc attributes are allowed on use tree entries
+  --> $DIR/attribute-in-use-tree-reject-unsupported.rs:5:13
+   |
+LL | use crate::{#[inline] inner::Item};
+   |             ^^^^^^^^^
+
+error: the `inline` attribute cannot be used on use statements
+  --> $DIR/attribute-in-use-tree-reject-unsupported.rs:5:15
+   |
+LL | use crate::{#[inline] inner::Item};
+   |               ^^^^^^
+   |
+   = help: the `inline` attribute can only be applied to functions
+
+error: aborting due to 2 previous errors
+

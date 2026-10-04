@@ -1,0 +1,8 @@
+error: expected identifier, found `#`
+  --> $DIR/attribute-in-use-tree-require-braces.rs:5:12
+   |
+LL | use crate::#[allow(unused_imports)] inner::Item;
+   |            ^ expected identifier
+
+error: aborting due to 1 previous error
+

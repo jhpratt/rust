@@ -593,6 +593,38 @@ impl<'hir> LoweringContext<'_, 'hir> {
                     let id = use_tree.id;
                     let hir_id = self.lower_node_id(id);
                     let def_id = self.curr_owner.owner.node_id_to_def_id[&id];
+                    for attr in &use_tree.attrs {
+                        if matches!(&attr.kind, AttrKind::Synthetic(_)) {
+                            continue;
+                        }
+                        let allowed = attr.is_doc_comment()
+                            || attr.has_any_name(&[
+                                sym::cfg,
+                                sym::cfg_attr,
+                                sym::allow,
+                                sym::expect,
+                                sym::warn,
+                                sym::deny,
+                                sym::forbid,
+                                sym::stable,
+                                sym::unstable,
+                                sym::rustc_const_stable,
+                                sym::rustc_const_unstable,
+                                sym::allow_internal_unstable,
+                                sym::doc,
+                            ]);
+                        if !allowed {
+                            self.dcx().span_err(
+                                attr.span,
+                                "only cfg, lint, stability, and doc attributes are allowed on use tree entries",
+                            );
+                        }
+                    }
+                    let own_attrs =
+                        self.lower_attrs(hir_id, &use_tree.attrs, use_tree.inner.span(), Target::Use);
+                    let attrs = self.arena.alloc_from_iter(
+                        attrs.iter().chain(own_attrs.iter()).cloned(),
+                    );
                     if !attrs.is_empty() {
                         self.curr_owner.attrs.insert(hir_id.local_id, attrs);
                     }

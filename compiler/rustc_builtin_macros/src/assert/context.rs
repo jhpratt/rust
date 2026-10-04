@@ -102,6 +102,7 @@ impl<'cx, 'a> Context<'cx, 'a> {
                 prefix: this.cx.path(this.span, vec![Ident::with_dummy_span(sym)]),
                 kind: UseTreeKind::Simple(None),
             },
+            attrs: ThinVec::new(),
             id: DUMMY_NODE_ID,
         };
         self.cx.stmt_item(

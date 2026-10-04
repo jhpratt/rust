@@ -1,7 +1,7 @@
 use core::ops::ControlFlow;
 
 use rustc_ast as ast;
-use rustc_ast::mut_visit::MutVisitor;
+use rustc_ast::mut_visit::{MutVisitor, MutWalkable};
 use rustc_ast::visit::{AssocCtxt, Visitor};
 use rustc_ast::{Attribute, HasTokens, NodeId, mut_visit, visit};
 use rustc_errors::PResult;
@@ -152,6 +152,13 @@ impl CfgEval<'_> {
 }
 
 impl MutVisitor for CfgEval<'_> {
+    fn visit_use_tree(&mut self, tree: &mut ast::UseTree) {
+        if let ast::UseTreeKind::Nested { items, .. } = &mut tree.kind {
+            items.retain_mut(|use_tree| self.0.configure_attrs(&mut use_tree.attrs).as_bool());
+        }
+        tree.walk_mut(self);
+    }
+
     #[instrument(level = "trace", skip(self))]
     fn visit_expr(&mut self, expr: &mut ast::Expr) {
         self.0.configure_expr(expr, false);

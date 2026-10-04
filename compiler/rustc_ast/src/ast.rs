@@ -3368,10 +3368,12 @@ impl UseTree {
     }
 }
 
-/// Used in nested `use` trees.
+/// A nested use-tree entry, including outer attributes written before it in a braced list.
 #[derive(Clone, Encodable, Decodable, Debug, Walkable)]
 pub struct UseTreeAndId {
     pub inner: UseTree,
+    /// Outer attributes on this entry; inner attributes are not accepted in this position.
+    pub attrs: AttrVec,
     pub id: NodeId,
 }
 

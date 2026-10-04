@@ -151,6 +151,41 @@ macro_rules! configure {
 }
 
 impl<'a> StripUnconfigured<'a> {
+    pub fn configure_attrs(&self, attrs: &mut ast::AttrVec) -> EvalConfigResult {
+        attrs.flat_map_in_place(|attr| self.process_cfg_attr(&attr));
+        for attr in attrs {
+            if !is_cfg(attr) {
+                continue;
+            }
+
+            let Some(cfg) = AttributeParser::parse_single(
+                self.sess,
+                attr,
+                attr.span,
+                self.lint_node_id,
+                Target::Use,
+                self.features,
+                ShouldEmit::ErrorsAndLints { recovery: Recovery::Allowed },
+                parse_cfg,
+                &CFG_TEMPLATE,
+                AllowExprMetavar::Yes,
+                AttributeSafety::Normal,
+            ) else {
+                continue;
+            };
+
+            let result = eval_config_entry(self.sess, &cfg);
+            match result {
+                EvalConfigResult::True => {
+                    *attr = attr.clone().convert_normal_to_synthetic(SyntheticAttr::CfgTrace(cfg));
+                }
+                EvalConfigResult::False { .. } => return result,
+            }
+        }
+
+        EvalConfigResult::True
+    }
+
     pub fn configure<T: HasTokens>(&self, mut node: T) -> Option<T> {
         self.process_cfg_attrs(&mut node);
         self.in_cfg(node.attrs()).then(|| {

@@ -325,6 +325,18 @@ impl<'tcx> Visitor<'tcx> for LintLevelsBuilder<'_, LintLevelQueryMap<'tcx>> {
         intravisit::walk_item(self, it);
     }
 
+    fn visit_use(
+        &mut self,
+        tree: &'tcx hir::UseTree<'tcx>,
+        hir_id: HirId,
+        _def_id: rustc_hir::def_id::LocalDefId,
+    ) {
+        if self.provider.cur != hir_id {
+            self.add_id(hir_id);
+        }
+        intravisit::walk_use(self, tree, hir_id);
+    }
+
     fn visit_foreign_item(&mut self, it: &'tcx hir::ForeignItem<'tcx>) {
         self.add_id(it.hir_id());
         intravisit::walk_foreign_item(self, it);
