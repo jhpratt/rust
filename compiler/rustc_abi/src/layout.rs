@@ -1411,6 +1411,35 @@ impl<Cx: HasDataLayout> LayoutCalculator<Cx> {
 
         let seed = field_seed.wrapping_add(repr.field_shuffle_seed);
 
+        if repr.zeroed_padding() && !repr.packed() && matches!(kind, StructKind::AlwaysSized) {
+            let mut padding_offset = None;
+            let mut covered_until = Size::ZERO;
+            for &field in &in_memory_order {
+                if offsets[field] > covered_until {
+                    padding_offset = Some(covered_until);
+                    break;
+                }
+                covered_until = cmp::max(covered_until, offsets[field] + fields[field].size);
+            }
+            if padding_offset.is_none() && covered_until < size {
+                padding_offset = Some(covered_until);
+            }
+
+            if let Some(offset) = padding_offset {
+                let padding_scalar = Scalar::Initialized {
+                    value: Primitive::Int(Integer::I8, false),
+                    valid_range: WrappingRange { start: 0, end: 0 },
+                };
+                let padding_niche = Niche::from_scalar(dl, offset, padding_scalar).unwrap();
+                if largest_niche
+                    .map_or(true, |niche| niche.available(dl) < padding_niche.available(dl))
+                {
+                    largest_niche = Some(padding_niche);
+                    abi = BackendRepr::Memory { sized };
+                }
+            }
+        }
+
         Ok(LayoutData {
             variants: Variants::Single { index: VariantIdx::new(0) },
             fields: FieldsShape::Arbitrary { offsets, in_memory_order },

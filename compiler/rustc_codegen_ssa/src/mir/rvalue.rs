@@ -20,6 +20,29 @@ use crate::traits::*;
 use crate::{MemFlags, base};
 
 impl<'a, 'tcx, Bx: BuilderMethods<'a, 'tcx>> FunctionCx<'a, 'tcx, Bx> {
+    fn zero_repr_padding(
+        &mut self,
+        bx: &mut Bx,
+        dest: PlaceRef<'tcx, Bx::Value>,
+        variant_index: abi::VariantIdx,
+    ) {
+        let ty::Adt(def, _) = dest.layout.ty.kind() else {
+            return;
+        };
+        if !def.repr().zeroed_padding() {
+            return;
+        }
+
+        let mut ranges = dest.layout.variant_independent_padding_ranges(bx.cx());
+        ranges.extend(dest.layout.variant_dependent_padding_ranges(bx.cx(), variant_index));
+        let zero = bx.const_u8(0);
+        for range in ranges {
+            let ptr = bx.inbounds_ptradd(dest.val.llval, bx.const_usize(range.start.bytes()));
+            let len = bx.const_usize((range.end - range.start).bytes());
+            bx.memset(ptr, zero, len, abi::Align::ONE, MemFlags::empty());
+        }
+    }
+
     fn try_codegen_const_aggregate_as_immediate(
         &mut self,
         bx: &mut Bx,
@@ -290,6 +313,7 @@ impl<'a, 'tcx, Bx: BuilderMethods<'a, 'tcx>> FunctionCx<'a, 'tcx, Bx> {
                     }
                 }
                 dest.codegen_set_discr(bx, variant_index);
+                self.zero_repr_padding(bx, dest, variant_index);
             }
 
             _ => {

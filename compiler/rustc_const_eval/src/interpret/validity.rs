@@ -1112,6 +1112,10 @@ impl<'rt, 'tcx, M: Machine<'tcx>> ValidityVisitor<'rt, 'tcx, M> {
 
     fn reset_padding(&mut self, place: &PlaceTy<'tcx, M::Provenance>) -> InterpResult<'tcx> {
         let Some(data_bytes) = self.data_bytes.as_mut() else { return interp_ok(()) };
+        let zero_padding = matches!(
+            place.layout.ty.kind(),
+            ty::Adt(def, _) if def.repr().zeroed_padding()
+        );
         // Our value must be in memory, otherwise we would not have set up `data_bytes`.
         let mplace = self.ecx.force_allocation(place)?;
         // Determine starting offset and size.
@@ -1151,8 +1155,24 @@ impl<'rt, 'tcx, M: Machine<'tcx>> ValidityVisitor<'rt, 'tcx, M> {
                 let padding_start = padding_cleared_until - start_offset;
                 let padding_size = offset - padding_cleared_until;
                 let range = alloc_range(padding_start, padding_size);
-                trace!("reset_padding on {}: resetting padding range {range:?}", mplace.layout.ty);
-                alloc.write_uninit(range);
+                if zero_padding {
+                    trace!(
+                        "reset_padding on {}: zeroing padding range {range:?}",
+                        mplace.layout.ty
+                    );
+                    for byte in padding_start.bytes()..(padding_start + padding_size).bytes() {
+                        alloc.write_scalar(
+                            alloc_range(Size::from_bytes(byte), Size::from_bytes(1)),
+                            Scalar::from_u8(0),
+                        )?;
+                    }
+                } else {
+                    trace!(
+                        "reset_padding on {}: resetting padding range {range:?}",
+                        mplace.layout.ty
+                    );
+                    alloc.write_uninit(range);
+                }
             }
             padding_cleared_until = offset + size;
         }

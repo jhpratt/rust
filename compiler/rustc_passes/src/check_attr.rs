@@ -1142,6 +1142,7 @@ impl<'tcx> CheckAttrVisitor<'tcx> {
                 ReprAttr::ReprC => {
                     is_c = true;
                 }
+                ReprAttr::ReprZeroedPadding => (),
                 ReprAttr::ReprAlign(..) => (),
                 ReprAttr::ReprPacked(..) => (),
                 ReprAttr::ReprSimd => {

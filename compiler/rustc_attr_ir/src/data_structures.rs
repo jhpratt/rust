@@ -156,6 +156,7 @@ pub enum ReprAttr {
     ReprInt(IntType),
     ReprRust,
     ReprC,
+    ReprZeroedPadding,
     ReprPacked(Align),
     ReprSimd,
     ReprTransparent,

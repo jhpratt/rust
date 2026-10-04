@@ -9,6 +9,7 @@ use rustc_abi::{FIRST_VARIANT, FieldIdx};
 use rustc_data_structures::fx::FxHashSet;
 use rustc_index::IndexSlice;
 use rustc_middle::mir;
+use rustc_middle::ty::layout::LayoutCx;
 use rustc_middle::ty::{self, Instance, Ty};
 use rustc_span::{Spanned, bug, span_bug};
 use rustc_target::callconv::FnAbi;
@@ -346,6 +347,20 @@ impl<'tcx, M: Machine<'tcx>> InterpCx<'tcx, M> {
             let op = self.eval_operand(operand, Some(field_dest.layout))?;
             // We validate manually below so we don't have to do it here.
             self.copy_op_no_validate(&op, &field_dest, /*allow_transmute*/ false)?;
+            if matches!(
+                field_dest.layout.ty.kind(),
+                ty::Adt(def, _) if def.repr().zeroed_padding()
+            ) {
+                let layout_cx = LayoutCx::new(*self.tcx, self.typing_env);
+                let mplace = self.force_allocation(&field_dest)?;
+                for range in field_dest.layout.variant_independent_padding_ranges(&layout_cx) {
+                    let ptr = mplace.ptr().wrapping_offset(range.start, self);
+                    self.write_bytes_ptr(
+                        ptr,
+                        iter::repeat_n(0, (range.end - range.start).bytes_usize()),
+                    )?;
+                }
+            }
         }
         self.write_discriminant(variant_index, dest)?;
         // Validate that the entire thing is valid, and reset padding that might be in between the

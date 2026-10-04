@@ -17,6 +17,7 @@ use crate::diagnostics;
 /// * `C`, to use the same layout for the type that C would use
 /// * `align(...)`, to change the alignment requirements of the type
 /// * `packed`, to remove padding
+/// * `zeroed_padding`, to guarantee zeroed padding
 /// * `transparent`, to delegate representation concerns to the only non-ZST field.
 pub(crate) struct ReprParser;
 
@@ -26,7 +27,7 @@ impl CombineAttributeParser for ReprParser {
     const CONVERT: ConvertFn<Self::Item> =
         |items, first_span| AttributeKind::Repr { reprs: items, first_span };
     const TEMPLATE: AttributeTemplate = template!(
-        List: &["C", "Rust", "transparent", "align(...)", "packed(...)", "<integer type>"],
+        List: &["C", "Rust", "zeroed_padding", "transparent", "align(...)", "packed(...)", "<integer type>"],
         "https://doc.rust-lang.org/reference/type-layout.html#representations"
     );
 
@@ -129,6 +130,18 @@ fn parse_repr(cx: &mut AcceptContext<'_, '_>, param: &MetaItemParser) -> Option<
             cx.expect_no_args(param.args())?;
             Some(ReprRust)
         }
+        Some(sym::zeroed_padding) => {
+            cx.check_target(
+                "(zeroed_padding)",
+                &AllowedTargets::AllowList(&[
+                    Allow(Target::Struct),
+                    Allow(Target::Enum),
+                    Warn(Target::MacroCall),
+                ]),
+            );
+            cx.expect_no_args(param.args())?;
+            Some(ReprZeroedPadding)
+        }
         Some(sym::C) => {
             cx.check_target(
                 "(C)",
@@ -190,6 +203,7 @@ fn parse_repr(cx: &mut AcceptContext<'_, '_>, param: &MetaItemParser) -> Option<
                     sym::packed,
                     sym::Rust,
                     sym::C,
+                    sym::zeroed_padding,
                     sym::simd,
                     sym::transparent,
                     sym::i8,

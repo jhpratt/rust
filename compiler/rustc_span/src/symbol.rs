@@ -2438,6 +2438,7 @@ symbols! {
         write_macro,
         write_str,
         write_via_move,
+        zeroed_padding,
         writeln_macro,
         x86,
         x86_64,

@@ -101,6 +101,7 @@ bitflags! {
         /// See [`TyAndLayout::pass_indirectly_in_non_rustic_abis`] for details.
         const PASS_INDIRECTLY_IN_NON_RUSTIC_ABIS = 1 << 5;
         const IS_SCALABLE        = 1 << 6;
+        const ZEROED_PADDING     = 1 << 7;
          // Any of these flags being set prevent field reordering optimisation.
         const FIELD_ORDER_UNOPTIMIZABLE = ReprFlags::IS_C.bits()
                                  | ReprFlags::IS_SIMD.bits()
@@ -200,6 +201,11 @@ impl ReprOptions {
     #[inline]
     pub fn transparent(&self) -> bool {
         self.flags.contains(ReprFlags::IS_TRANSPARENT)
+    }
+
+    #[inline]
+    pub fn zeroed_padding(&self) -> bool {
+        self.flags.contains(ReprFlags::ZEROED_PADDING)
     }
 
     #[inline]
